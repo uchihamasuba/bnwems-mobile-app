@@ -123,12 +123,16 @@ class _LeaderDamageLossReportScreenState extends State<LeaderDamageLossReportScr
   Widget _buildOrderDropdown() {
     return InfoCard(
       child: DropdownButtonFormField<String>(
+        isExpanded: true,
         value: _selectedOrder,
         style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         items: MockData.orders.map((order) {
           return DropdownMenuItem(
             value: order.id,
-            child: Text('${order.id} - ${order.customerName}'),
+            child: Text(
+              '${order.id} - ${order.customerName}',
+              overflow: TextOverflow.ellipsis,
+            ),
           );
         }).toList(),
         onChanged: (val) {
@@ -185,12 +189,13 @@ class _LeaderDamageLossReportScreenState extends State<LeaderDamageLossReportScr
   Widget _buildResponsibilityCard() {
     return InfoCard(
       child: DropdownButtonFormField<String>(
+        isExpanded: true,
         value: _responsibility,
         style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         items: const [
-          DropdownMenuItem(value: 'Customer', child: Text('Trách nhiệm do Khách hàng đền bù')),
-          DropdownMenuItem(value: 'Staff', child: Text('Trách nhiệm do Nhân viên kỹ thuật làm hỏng')),
-          DropdownMenuItem(value: 'Unknown', child: Text('Hao mòn tự nhiên / Chưa rõ nguyên nhân')),
+          DropdownMenuItem(value: 'Customer', child: Text('Trách nhiệm do Khách hàng đền bù', overflow: TextOverflow.ellipsis)),
+          DropdownMenuItem(value: 'Staff', child: Text('Trách nhiệm do Nhân viên kỹ thuật làm hỏng', overflow: TextOverflow.ellipsis)),
+          DropdownMenuItem(value: 'Unknown', child: Text('Hao mòn tự nhiên / Chưa rõ nguyên nhân', overflow: TextOverflow.ellipsis)),
         ],
         onChanged: (val) {
           if (val != null) {

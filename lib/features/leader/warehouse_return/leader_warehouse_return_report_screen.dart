@@ -120,12 +120,16 @@ class _LeaderWarehouseReturnReportScreenState extends State<LeaderWarehouseRetur
   Widget _buildOrderDropdown() {
     return InfoCard(
       child: DropdownButtonFormField<String>(
+        isExpanded: true,
         value: _selectedOrder,
         style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         items: MockData.orders.map((order) {
           return DropdownMenuItem(
             value: order.id,
-            child: Text('${order.id} - ${order.customerName}'),
+            child: Text(
+              '${order.id} - ${order.customerName}',
+              overflow: TextOverflow.ellipsis,
+            ),
           );
         }).toList(),
         onChanged: (val) {

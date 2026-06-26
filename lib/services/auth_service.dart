@@ -1,10 +1,9 @@
 import 'dart:convert';
-import '../services/api_service.dart';
 import '../models/user_model.dart';
+import '../services/api_service.dart';
 import '../utils/storage_helper.dart';
 
 class AuthService {
-  /// POST /api/v1/auth/login
   static Future<Map<String, dynamic>> login({
     required String username,
     required String password,
@@ -20,10 +19,12 @@ class AuthService {
     await StorageHelper.saveToken(token);
     await StorageHelper.saveUser(jsonEncode(user.toJson()));
 
-    return {'token': token, 'user': user};
+    return {
+      'token': token,
+      'user': user,
+    };
   }
 
-  /// PUT /api/v1/auth/change-password
   static Future<void> changePassword({
     required String oldPassword,
     required String newPassword,
@@ -31,10 +32,20 @@ class AuthService {
     await ApiService.put('/auth/change-password', {
       'oldPassword': oldPassword,
       'newPassword': newPassword,
+      'confirmNewPassword': newPassword,
     });
   }
 
-  /// Logout — clear all local storage.
+  static Future<UserModel?> getStoredUser() async {
+    final userJson = await StorageHelper.getUser();
+    if (userJson == null || userJson.isEmpty) {
+      return null;
+    }
+
+    final decoded = jsonDecode(userJson) as Map<String, dynamic>;
+    return UserModel.fromJson(decoded);
+  }
+
   static Future<void> logout() async {
     await StorageHelper.clearAll();
   }

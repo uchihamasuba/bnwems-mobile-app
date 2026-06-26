@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
 import '../models/user_model.dart';
+import '../services/api_service.dart';
+import '../services/auth_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   UserModel? _user;
@@ -11,6 +12,11 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get isAuthenticated => _user != null;
+
+  Future<void> restoreSession() async {
+    _user = await AuthService.getStoredUser();
+    notifyListeners();
+  }
 
   Future<bool> login({required String username, required String password}) async {
     _isLoading = true;
@@ -23,8 +29,13 @@ class AuthProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return true;
-    } on Exception catch (e) {
-      _error = e.toString();
+    } on ApiException catch (e) {
+      _error = e.message;
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } on Exception {
+      _error = 'Khong the dang nhap. Vui long thu lai.';
       _isLoading = false;
       notifyListeners();
       return false;

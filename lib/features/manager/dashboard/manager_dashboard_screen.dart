@@ -7,6 +7,7 @@ import '../../../core/widgets/info_card.dart';
 import '../../../core/widgets/section_title.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../services/auth_service.dart';
 import '../../../shared/mock/mock_data.dart';
 import '../../../shared/models/order_status.dart';
 import '../../../shared/models/core_models.dart';
@@ -30,7 +31,15 @@ class ManagerDashboardScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: AppColors.error),
-            onPressed: () => Navigator.pushReplacementNamed(context, AppRoutes.login),
+            onPressed: () async {
+              await AuthService.logout();
+              if (!context.mounted) return;
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                AppRoutes.login,
+                (route) => false,
+              );
+            },
           )
         ],
       ),

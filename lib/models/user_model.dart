@@ -1,32 +1,30 @@
-/// User model matching the API Contract JSON schema.
 class UserModel {
-  final int id;
+  final String id;
   final String username;
   final String fullName;
-  final String email;
-  final String? phone;
+  final String role;
   final String status;
-  final RoleModel role;
 
   const UserModel({
     required this.id,
     required this.username,
     required this.fullName,
-    required this.email,
-    this.phone,
-    required this.status,
     required this.role,
+    required this.status,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    final roleValue = json['role'];
+    final roleName = roleValue is Map<String, dynamic>
+        ? (roleValue['roleName'] ?? '').toString()
+        : (roleValue ?? '').toString();
+
     return UserModel(
-      id: json['id'] as int,
-      username: json['username'] as String,
-      fullName: json['fullName'] as String,
-      email: json['email'] as String,
-      phone: json['phone'] as String?,
-      status: json['status'] as String,
-      role: RoleModel.fromJson(json['role'] as Map<String, dynamic>),
+      id: (json['id'] ?? json['userId'] ?? '').toString(),
+      username: (json['username'] ?? '').toString(),
+      fullName: (json['fullName'] ?? '').toString(),
+      role: roleName,
+      status: (json['status'] ?? '').toString(),
     );
   }
 
@@ -34,37 +32,12 @@ class UserModel {
         'id': id,
         'username': username,
         'fullName': fullName,
-        'email': email,
-        'phone': phone,
+        'role': role,
         'status': status,
-        'role': role.toJson(),
       };
-}
 
-class RoleModel {
-  final int id;
-  final String roleName;
-  final List<String> permissions;
-
-  const RoleModel({
-    required this.id,
-    required this.roleName,
-    required this.permissions,
-  });
-
-  factory RoleModel.fromJson(Map<String, dynamic> json) {
-    return RoleModel(
-      id: json['id'] as int,
-      roleName: json['roleName'] as String,
-      permissions: json['permissions'] != null
-          ? List<String>.from(json['permissions'] as List)
-          : [],
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'roleName': roleName,
-        'permissions': permissions,
-      };
+  bool get isAdmin => role == 'ADMIN';
+  bool get isManager => role == 'MANAGER';
+  bool get isLeader => role == 'LEADER_STAFF';
+  bool get isTechnical => role == 'TECHNICAL_STAFF';
 }

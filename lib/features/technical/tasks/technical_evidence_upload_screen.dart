@@ -108,12 +108,16 @@ class _TechnicalEvidenceUploadScreenState extends State<TechnicalEvidenceUploadS
   Widget _buildOrderDropdown() {
     return InfoCard(
       child: DropdownButtonFormField<String>(
+        isExpanded: true,
         value: _selectedOrder,
         style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         items: MockData.orders.map((order) {
           return DropdownMenuItem(
             value: order.id,
-            child: Text('${order.id} - ${order.customerName}'),
+            child: Text(
+              '${order.id} - ${order.customerName}',
+              overflow: TextOverflow.ellipsis,
+            ),
           );
         }).toList(),
         onChanged: (val) {
@@ -134,13 +138,14 @@ class _TechnicalEvidenceUploadScreenState extends State<TechnicalEvidenceUploadS
   Widget _buildTypeDropdown() {
     return InfoCard(
       child: DropdownButtonFormField<String>(
+        isExpanded: true,
         value: _evidenceType,
         style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         items: const [
-          DropdownMenuItem(value: 'Checkout', child: Text('Bàn giao xuất kho (Checkout)')),
-          DropdownMenuItem(value: 'Installation', child: Text('Thi công hoàn thiện (Installation)')),
-          DropdownMenuItem(value: 'Return', child: Text('Hoàn trả thiết bị kho (Return)')),
-          DropdownMenuItem(value: 'Damage/Loss', child: Text('Báo cáo hỏng hóc (Damage/Loss)')),
+          DropdownMenuItem(value: 'Checkout', child: Text('Bàn giao xuất kho (Checkout)', overflow: TextOverflow.ellipsis)),
+          DropdownMenuItem(value: 'Installation', child: Text('Thi công hoàn thiện (Installation)', overflow: TextOverflow.ellipsis)),
+          DropdownMenuItem(value: 'Return', child: Text('Hoàn trả thiết bị kho (Return)', overflow: TextOverflow.ellipsis)),
+          DropdownMenuItem(value: 'Damage/Loss', child: Text('Báo cáo hỏng hóc (Damage/Loss)', overflow: TextOverflow.ellipsis)),
         ],
         onChanged: (val) {
           if (val != null) {

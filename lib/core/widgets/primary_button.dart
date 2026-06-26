@@ -53,12 +53,15 @@ class PrimaryButton extends StatelessWidget {
                     Icon(icon, size: 20, color: textColor ?? Colors.white),
                     AppSizes.spacingS,
                   ],
-                  Text(
-                    text,
-                    style: TextStyle(
-                      color: textColor ?? Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                  Flexible(
+                    child: Text(
+                      text,
+                      style: TextStyle(
+                        color: textColor ?? Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],

@@ -102,12 +102,16 @@ class _LeaderPaymentEvidenceUploadScreenState extends State<LeaderPaymentEvidenc
   Widget _buildOrderDropdown() {
     return InfoCard(
       child: DropdownButtonFormField<String>(
+        isExpanded: true,
         value: _selectedOrder,
         style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         items: MockData.orders.map((order) {
           return DropdownMenuItem(
             value: order.id,
-            child: Text('${order.id} - ${order.customerName}'),
+            child: Text(
+              '${order.id} - ${order.customerName}',
+              overflow: TextOverflow.ellipsis,
+            ),
           );
         }).toList(),
         onChanged: (val) {
@@ -130,11 +134,12 @@ class _LeaderPaymentEvidenceUploadScreenState extends State<LeaderPaymentEvidenc
       child: Column(
         children: [
           DropdownButtonFormField<String>(
+            isExpanded: true,
             value: _paymentType,
             style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
             items: const [
-              DropdownMenuItem(value: 'Deposit', child: Text('Đặt cọc sự kiện (Deposit)')),
-              DropdownMenuItem(value: 'Final Payment', child: Text('Quyết toán hợp đồng (Final Payment)')),
+              DropdownMenuItem(value: 'Deposit', child: Text('Đặt cọc sự kiện (Deposit)', overflow: TextOverflow.ellipsis)),
+              DropdownMenuItem(value: 'Final Payment', child: Text('Quyết toán hợp đồng (Final Payment)', overflow: TextOverflow.ellipsis)),
             ],
             onChanged: (val) {
               if (val != null) {
@@ -154,12 +159,13 @@ class _LeaderPaymentEvidenceUploadScreenState extends State<LeaderPaymentEvidenc
           ),
           const SizedBox(height: AppSizes.m),
           DropdownButtonFormField<String>(
+            isExpanded: true,
             value: _paymentMethod,
             style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
             items: const [
-              DropdownMenuItem(value: 'Chuyển khoản Vietcombank', child: Text('Chuyển khoản nhanh Vietcombank')),
-              DropdownMenuItem(value: 'Chuyển khoản MBBank', child: Text('Chuyển khoản nhanh MBBank')),
-              DropdownMenuItem(value: 'Tiền mặt tại chỗ', child: Text('Nhận tiền mặt tại hiện trường')),
+              DropdownMenuItem(value: 'Chuyển khoản Vietcombank', child: Text('Chuyển khoản nhanh Vietcombank', overflow: TextOverflow.ellipsis)),
+              DropdownMenuItem(value: 'Chuyển khoản MBBank', child: Text('Chuyển khoản nhanh MBBank', overflow: TextOverflow.ellipsis)),
+              DropdownMenuItem(value: 'Tiền mặt tại chỗ', child: Text('Nhận tiền mặt tại hiện trường', overflow: TextOverflow.ellipsis)),
             ],
             onChanged: (val) {
               if (val != null) {

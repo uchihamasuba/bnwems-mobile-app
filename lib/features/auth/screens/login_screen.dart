@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_strings.dart';
+import '../../../core/routes/app_routes.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/primary_button.dart';
-import '../../../core/routes/app_routes.dart';
+import '../../../models/user_model.dart';
+import '../../../services/api_service.dart';
+import '../../../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,236 +17,368 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController(text: 'manager@test.com');
-  final _passwordController = TextEditingController(text: 'password123');
+  final _formKey = GlobalKey<FormState>();
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _isLoading = false;
+  bool _isCheckingSession = true;
+  String? _errorMessage;
 
-  void _handleLogin() {
-    final email = _emailController.text.trim().toLowerCase();
-    setState(() => _isLoading = true);
-
-    Future.delayed(const Duration(milliseconds: 600), () {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
-
-      if (email.contains('manager')) {
-        Navigator.pushReplacementNamed(context, AppRoutes.managerDashboard);
-      } else if (email.contains('leader')) {
-        Navigator.pushReplacementNamed(context, AppRoutes.leaderDashboard);
-      } else if (email.contains('technical')) {
-        Navigator.pushReplacementNamed(context, AppRoutes.technicalDashboard);
-      } else {
-        // Fallback to manager
-        Navigator.pushReplacementNamed(context, AppRoutes.managerDashboard);
-      }
-    });
+  @override
+  void initState() {
+    super.initState();
+    _restoreSession();
   }
 
-  void _selectQuickRole(String email) {
+  Future<void> _restoreSession() async {
+    try {
+      final storedUser = await AuthService.getStoredUser();
+      if (!mounted) return;
+      if (storedUser != null) {
+        Navigator.pushReplacementNamed(context, _routeForRole(storedUser.role));
+        return;
+      }
+    } catch (_) {}
+    if (mounted) setState(() => _isCheckingSession = false);
+  }
+
+  Future<void> _handleLogin() async {
+    FocusScope.of(context).unfocus();
+    if (!_formKey.currentState!.validate()) return;
+
     setState(() {
-      _emailController.text = email;
+      _isLoading = true;
+      _errorMessage = null;
     });
+
+    try {
+      final result = await AuthService.login(
+        username: _usernameController.text.trim(),
+        password: _passwordController.text,
+      );
+      if (!mounted) return;
+      final user = result['user'] as UserModel;
+      Navigator.pushReplacementNamed(context, _routeForRole(user.role));
+    } on ApiException catch (error) {
+      setState(() => _errorMessage = error.message);
+    } catch (_) {
+      setState(() => _errorMessage =
+      'Không thể kết nối tới server. Vui lòng thử lại.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  String _routeForRole(String role) {
+    switch (role) {
+      case 'ADMIN':
+      case 'MANAGER':
+        return AppRoutes.managerDashboard;
+      case 'LEADER_STAFF':
+        return AppRoutes.leaderDashboard;
+      case 'TECHNICAL_STAFF':
+        return AppRoutes.technicalDashboard;
+      default:
+        return AppRoutes.managerDashboard;
+    }
   }
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final mq = MediaQuery.of(context);
-    final isKeyboardOpen = mq.viewInsets.bottom > 0;
+    if (_isCheckingSession) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
 
-    return AppScaffold(
-      useSafeArea: true,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: AppSizes.l, vertical: AppSizes.m),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            minHeight: mq.size.height - mq.padding.top - mq.padding.bottom - AppSizes.l,
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (!isKeyboardOpen) ...[
-                    const SizedBox(height: AppSizes.xl),
-                    // Elegant App Logo
-                    Center(
-                      child: Container(
-                        height: 90,
-                        width: 90,
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryLight,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withOpacity(0.15),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
-                            )
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.celebration_rounded,
-                          size: 44,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: AppSizes.l),
-                    const Text(
-                      AppStrings.appName,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textPrimary,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    const SizedBox(height: AppSizes.xs),
-                    const Text(
-                      'Mobile Operational Application',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: AppSizes.xl),
+    return Scaffold(
+      body: Column(
+        children: [
+          // ── Hero header ──────────────────────────────────────────
+          _buildHero(),
+
+          // ── Form body ────────────────────────────────────────────
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildSectionLabel('Thông tin đăng nhập'),
+                    const SizedBox(height: 14),
+                    _buildUsernameField(),
+                    const SizedBox(height: 12),
+                    _buildPasswordField(),
+                    if (_errorMessage != null) ...[
+                      const SizedBox(height: 16),
+                      _buildErrorBanner(),
+                    ],
+                    const SizedBox(height: 24),
+                    _buildLoginButton(),
+                    const SizedBox(height: 32),
+                    _buildFooter(),
                   ],
-
-                  // Credentials Form
-                  const Text(
-                    'Đăng nhập tài khoản điều hành',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: AppSizes.m),
-                  TextField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'Email tài khoản',
-                      prefixIcon: Icon(Icons.email_outlined),
-                    ),
-                  ),
-                  const SizedBox(height: AppSizes.m),
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: _obscurePassword,
-                    decoration: InputDecoration(
-                      labelText: AppStrings.passwordLabel,
-                      prefixIcon: const Icon(Icons.lock_outlined),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                          color: AppColors.textSecondary,
-                        ),
-                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: AppSizes.l),
-
-                  // Login Button
-                  PrimaryButton(
-                    text: 'Đăng Nhập Vận Hành',
-                    onPressed: _handleLogin,
-                    isLoading: _isLoading,
-                    icon: Icons.login_rounded,
-                  ),
-                  const SizedBox(height: AppSizes.l),
-
-                  // Quick test details card with 3 role selections
-                  Container(
-                    padding: const EdgeInsets.all(AppSizes.m),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryLight.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
-                      border: Border.all(color: AppColors.primaryLight),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Đăng nhập nhanh vai trò:',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primary),
-                        ),
-                        const SizedBox(height: 8),
-                        _buildQuickSelectButton('Manager', 'manager@test.com'),
-                        const SizedBox(height: 6),
-                        _buildQuickSelectButton('Leader Staff', 'leader@test.com'),
-                        const SizedBox(height: 6),
-                        _buildQuickSelectButton('Technical Staff', 'technical@test.com'),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: AppSizes.m),
-                child: Text(
-                  AppStrings.copyright,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: AppColors.textLight,
-                  ),
                 ),
               ),
-            ],
+            ),
           ),
+        ],
+      ),
+    );
+  }
+
+  // ── Hero ──────────────────────────────────────────────────────────
+  Widget _buildHero() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(24, 72, 24, 36),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF1E3A5F), Color(0xFF0F2744)],
+        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+      ),
+      child: Column(
+        children: [
+          // Logo container
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.18),
+                width: 1,
+              ),
+            ),
+            child: const Icon(
+              Icons.lock_person_rounded,
+              size: 34,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            AppStrings.appName,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              letterSpacing: -0.3,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Đăng nhập để tiếp tục',
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.white.withValues(alpha: 0.55),
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Section label ─────────────────────────────────────────────────
+  Widget _buildSectionLabel(String label) {
+    return Text(
+      label.toUpperCase(),
+      style: const TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+        color: Color(0xFF94A3B8),
+        letterSpacing: 0.8,
+      ),
+    );
+  }
+
+  // ── Username field ────────────────────────────────────────────────
+  Widget _buildUsernameField() {
+    return _FieldCard(
+      child: TextFormField(
+        controller: _usernameController,
+        textInputAction: TextInputAction.next,
+        style: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+          color: Color(0xFF1E293B),
+        ),
+        decoration: const InputDecoration(
+          labelText: 'Username',
+          labelStyle: TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+          prefixIcon: Icon(Icons.person_outline_rounded,
+              size: 20, color: Color(0xFF94A3B8)),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+          focusedErrorBorder: InputBorder.none,
+          contentPadding: EdgeInsets.zero,
+          isDense: true,
+        ),
+        validator: (v) =>
+        (v == null || v.trim().isEmpty) ? 'Vui lòng nhập username' : null,
+      ),
+    );
+  }
+
+  // ── Password field ────────────────────────────────────────────────
+  Widget _buildPasswordField() {
+    return _FieldCard(
+      child: TextFormField(
+        controller: _passwordController,
+        obscureText: _obscurePassword,
+        textInputAction: TextInputAction.done,
+        onFieldSubmitted: (_) => _handleLogin(),
+        style: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+          color: Color(0xFF1E293B),
+        ),
+        decoration: InputDecoration(
+          labelText: AppStrings.passwordLabel,
+          labelStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+          prefixIcon: const Icon(Icons.lock_outline_rounded,
+              size: 20, color: Color(0xFF94A3B8)),
+          suffixIcon: GestureDetector(
+            onTap: () => setState(() => _obscurePassword = !_obscurePassword),
+            child: Icon(
+              _obscurePassword
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+              size: 20,
+              color: const Color(0xFFCBD5E1),
+            ),
+          ),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+          focusedErrorBorder: InputBorder.none,
+          contentPadding: EdgeInsets.zero,
+          isDense: true,
+        ),
+        validator: (v) =>
+        (v == null || v.isEmpty) ? 'Vui lòng nhập mật khẩu' : null,
+      ),
+    );
+  }
+
+  // ── Error banner ──────────────────────────────────────────────────
+  Widget _buildErrorBanner() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFEF2F2),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFECACA)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline_rounded,
+              size: 18, color: Color(0xFFDC2626)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              _errorMessage!,
+              style: const TextStyle(
+                fontSize: 13,
+                color: Color(0xFFDC2626),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Login button ──────────────────────────────────────────────────
+  Widget _buildLoginButton() {
+    return SizedBox(
+      height: 52,
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : _handleLogin,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF1E3A5F),
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: const Color(0xFF1E3A5F).withValues(alpha: 0.5),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+        child: _isLoading
+            ? const SizedBox(
+          width: 22,
+          height: 22,
+          child: CircularProgressIndicator(
+            strokeWidth: 2.5,
+            color: Colors.white,
+          ),
+        )
+            : const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Đăng nhập',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.2,
+              ),
+            ),
+            SizedBox(width: 8),
+            Icon(Icons.arrow_forward_rounded, size: 18),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildQuickSelectButton(String roleName, String email) {
-    final isSelected = _emailController.text == email;
-    return InkWell(
-      onTap: () => _selectQuickRole(email),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.white,
-          borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-          border: Border.all(color: isSelected ? AppColors.primary : AppColors.divider),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              roleName,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.white : AppColors.textPrimary,
-              ),
-            ),
-            Text(
-              email,
-              style: TextStyle(
-                fontSize: 11,
-                color: isSelected ? Colors.white70 : AppColors.textSecondary,
-              ),
-            ),
-          ],
-        ),
+  // ── Footer ────────────────────────────────────────────────────────
+  Widget _buildFooter() {
+    return const Text(
+      AppStrings.copyright,
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        fontSize: 11,
+        color: Color(0xFFCBD5E1),
       ),
+    );
+  }
+}
+
+// ── Reusable field card ───────────────────────────────────────────────
+class _FieldCard extends StatelessWidget {
+  final Widget child;
+  const _FieldCard({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: child,
     );
   }
 }

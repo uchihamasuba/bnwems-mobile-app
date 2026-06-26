@@ -113,12 +113,16 @@ class _LeaderCreateChangeRequestScreenState extends State<LeaderCreateChangeRequ
   Widget _buildOrderDropdown() {
     return InfoCard(
       child: DropdownButtonFormField<String>(
+        isExpanded: true,
         value: _selectedOrder,
         style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         items: MockData.orders.map((order) {
           return DropdownMenuItem(
             value: order.id,
-            child: Text('${order.id} - ${order.customerName}'),
+            child: Text(
+              '${order.id} - ${order.customerName}',
+              overflow: TextOverflow.ellipsis,
+            ),
           );
         }).toList(),
         onChanged: (val) {
@@ -139,13 +143,14 @@ class _LeaderCreateChangeRequestScreenState extends State<LeaderCreateChangeRequ
   Widget _buildTypeDropdown() {
     return InfoCard(
       child: DropdownButtonFormField<String>(
+        isExpanded: true,
         value: _requestType,
         style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         items: const [
-          DropdownMenuItem(value: 'Add', child: Text('Thêm thiết bị (ADD)')),
-          DropdownMenuItem(value: 'Remove', child: Text('Bớt thiết bị (REMOVE)')),
-          DropdownMenuItem(value: 'Replace', child: Text('Thay thế thiết bị (REPLACE)')),
-          DropdownMenuItem(value: 'Change Plan', child: Text('Đổi phương án setup (CHANGE PLAN)')),
+          DropdownMenuItem(value: 'Add', child: Text('Thêm thiết bị (ADD)', overflow: TextOverflow.ellipsis)),
+          DropdownMenuItem(value: 'Remove', child: Text('Bớt thiết bị (REMOVE)', overflow: TextOverflow.ellipsis)),
+          DropdownMenuItem(value: 'Replace', child: Text('Thay thế thiết bị (REPLACE)', overflow: TextOverflow.ellipsis)),
+          DropdownMenuItem(value: 'Change Plan', child: Text('Đổi phương án setup (CHANGE PLAN)', overflow: TextOverflow.ellipsis)),
         ],
         onChanged: (val) {
           if (val != null) {
