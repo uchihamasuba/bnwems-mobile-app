@@ -8,6 +8,7 @@ import '../../../core/widgets/section_title.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../../../core/widgets/secondary_button.dart';
+import '../../manager/models/manager_route_args.dart';
 import '../../../shared/mock/mock_data.dart';
 import '../../../shared/models/core_models.dart';
 
@@ -24,8 +25,14 @@ class _ChangeRequestApprovalScreenState extends State<ChangeRequestApprovalScree
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final args = ModalRoute.of(context)?.settings.arguments as String?;
-    _loadRequest(args);
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is ManagerChangeRequestRouteArgs) {
+      _loadRequest(args.changeRequestId);
+    } else if (args is String) {
+      _loadRequest(args);
+    } else {
+      _loadRequest(null);
+    }
   }
 
   void _loadRequest(String? requestId) {
@@ -297,10 +304,26 @@ class _ChangeRequestApprovalScreenState extends State<ChangeRequestApprovalScree
 
   Widget _buildInfoRow(String label, String value) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary)),
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ),
       ],
     );
   }

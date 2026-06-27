@@ -31,7 +31,7 @@ class AppTheme {
         backgroundColor: Colors.white,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
-        centerTitle: true,
+        centerTitle: false,
         scrolledUnderElevation: 1,
         shadowColor: AppColors.divider,
         iconTheme: IconThemeData(color: AppColors.textPrimary),
@@ -94,6 +94,42 @@ class AppTheme {
             fontWeight: FontWeight.w600,
           ),
         ),
+      ),
+
+      chipTheme: ChipThemeData(
+        backgroundColor: AppColors.cardBackground,
+        selectedColor: AppColors.primary,
+        secondarySelectedColor: AppColors.primary,
+        side: const BorderSide(color: AppColors.divider),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+        ),
+        labelStyle: const TextStyle(
+          color: AppColors.textPrimary,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      ),
+
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: Colors.white,
+        indicatorColor: AppColors.primaryLight,
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return TextStyle(
+            color: selected ? AppColors.primary : AppColors.textSecondary,
+            fontSize: 11,
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+          );
+        }),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return IconThemeData(
+            color: selected ? AppColors.primary : AppColors.textSecondary,
+            size: 22,
+          );
+        }),
       ),
 
       // Input Decoration Theme

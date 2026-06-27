@@ -5,6 +5,7 @@ import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/custom_app_bar.dart';
 import '../../../core/widgets/info_card.dart';
 import '../../../core/widgets/status_chip.dart';
+import '../../manager/models/manager_route_args.dart';
 import '../../../shared/mock/mock_data.dart';
 import '../../../shared/models/core_models.dart';
 
@@ -22,8 +23,14 @@ class _FieldProgressScreenState extends State<FieldProgressScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final args = ModalRoute.of(context)?.settings.arguments as String?;
-    _orderId = args ?? 'ORD-2026-001';
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is ManagerOrderRouteArgs) {
+      _orderId = args.orderId;
+    } else if (args is String) {
+      _orderId = args;
+    } else {
+      _orderId = 'ORD-2026-001';
+    }
     _steps = MockData.fieldProgress[_orderId] ?? [];
   }
 

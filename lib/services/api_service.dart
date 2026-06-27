@@ -23,8 +23,8 @@ class ApiService {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return const [
-          'http://10.0.2.2:3000/api/v1',
           'http://10.0.2.2:3001/api/v1',
+          'http://10.0.2.2:3000/api/v1',
         ];
       case TargetPlatform.iOS:
       case TargetPlatform.macOS:
@@ -32,8 +32,8 @@ class ApiService {
       case TargetPlatform.linux:
       case TargetPlatform.fuchsia:
         return const [
-          'http://localhost:3000/api/v1',
           'http://localhost:3001/api/v1',
+          'http://localhost:3000/api/v1',
         ];
     }
   }

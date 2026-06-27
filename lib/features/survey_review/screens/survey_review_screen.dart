@@ -8,6 +8,7 @@ import '../../../core/widgets/section_title.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../../../core/widgets/secondary_button.dart';
+import '../../manager/models/manager_route_args.dart';
 import '../../../shared/mock/mock_data.dart';
 import '../../../shared/models/core_models.dart';
 
@@ -24,8 +25,14 @@ class _SurveyReviewScreenState extends State<SurveyReviewScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final args = ModalRoute.of(context)?.settings.arguments as String?;
-    _loadReport(args);
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is ManagerSurveyRouteArgs) {
+      _loadReport(args.orderId);
+    } else if (args is String) {
+      _loadReport(args);
+    } else {
+      _loadReport(null);
+    }
   }
 
   void _loadReport(String? orderCode) {

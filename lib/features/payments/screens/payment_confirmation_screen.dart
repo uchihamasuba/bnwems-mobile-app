@@ -8,6 +8,7 @@ import '../../../core/widgets/section_title.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../../../core/widgets/secondary_button.dart';
+import '../../manager/models/manager_route_args.dart';
 import '../../../shared/mock/mock_data.dart';
 import '../../../shared/models/order_status.dart';
 import '../../../shared/models/payment_status.dart';
@@ -26,8 +27,14 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final args = ModalRoute.of(context)?.settings.arguments as String?;
-    _loadPayment(args);
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is ManagerPaymentRouteArgs) {
+      _loadPayment(args.paymentId);
+    } else if (args is String) {
+      _loadPayment(args);
+    } else {
+      _loadPayment(null);
+    }
   }
 
   void _loadPayment(String? paymentId) {

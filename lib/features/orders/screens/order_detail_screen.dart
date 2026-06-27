@@ -9,6 +9,7 @@ import '../../../core/widgets/status_chip.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../../../core/widgets/secondary_button.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../manager/models/manager_route_args.dart';
 import '../../../shared/mock/mock_data.dart';
 import '../../../shared/models/order_status.dart';
 import '../../../shared/models/core_models.dart';
@@ -27,8 +28,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final args = ModalRoute.of(context)?.settings.arguments as String?;
-    if (args != null) {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is ManagerOrderRouteArgs) {
+      _orderId = args.orderId;
+    } else if (args is String) {
       _orderId = args;
     }
     _loadOrderData();

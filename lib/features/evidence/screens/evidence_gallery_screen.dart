@@ -5,6 +5,7 @@ import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/custom_app_bar.dart';
 import '../../../core/widgets/info_card.dart';
 import '../../../core/widgets/status_chip.dart';
+import '../../manager/models/manager_route_args.dart';
 import '../../../shared/mock/mock_data.dart';
 import '../../../shared/models/core_models.dart';
 import '../../../shared/models/evidence_type.dart';
@@ -17,10 +18,11 @@ class EvidenceGalleryScreen extends StatefulWidget {
 }
 
 class _EvidenceGalleryScreenState extends State<EvidenceGalleryScreen> {
-  String _selectedType = 'Tất cả';
+  String _selectedType = 'Tat ca';
+  String? _orderIdFilter;
 
   final List<String> _filters = [
-    'Tất cả',
+    'Tat ca',
     'Survey',
     'Checkout',
     'Installation',
@@ -31,9 +33,29 @@ class _EvidenceGalleryScreenState extends State<EvidenceGalleryScreen> {
   ];
 
   List<EvidenceItem> get _filteredEvidence {
-    if (_selectedType == 'Tất cả') return MockData.evidenceItems;
+    var items = MockData.evidenceItems;
+
+    if (_orderIdFilter != null && _orderIdFilter!.isNotEmpty) {
+      items = items.where((e) => e.orderCode == _orderIdFilter).toList();
+    }
+
+    if (_selectedType == 'Tat ca') {
+      return items;
+    }
+
     final filterType = EvidenceType.fromString(_selectedType);
-    return MockData.evidenceItems.where((e) => e.type == filterType).toList();
+    return items.where((e) => e.type == filterType).toList();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is ManagerEvidenceRouteArgs) {
+      _orderIdFilter = args.orderId;
+    } else {
+      _orderIdFilter = null;
+    }
   }
 
   void _showImageDetails(EvidenceItem item) {
@@ -45,7 +67,6 @@ class _EvidenceGalleryScreenState extends State<EvidenceGalleryScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Image mockup block
             Container(
               height: 220,
               decoration: BoxDecoration(
@@ -98,12 +119,12 @@ class _EvidenceGalleryScreenState extends State<EvidenceGalleryScreen> {
                     const SizedBox(height: 8),
                   ],
                   Text(
-                    'Đăng bởi: ${item.uploadedBy}',
+                    'Dang boi: ${item.uploadedBy}',
                     style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Thời gian: ${item.uploadedAt.hour}:${item.uploadedAt.minute.toString().padLeft(2, '0')} - ${item.uploadedAt.day}/${item.uploadedAt.month}/${item.uploadedAt.year}',
+                    'Thoi gian: ${item.uploadedAt.hour}:${item.uploadedAt.minute.toString().padLeft(2, '0')} - ${item.uploadedAt.day}/${item.uploadedAt.month}/${item.uploadedAt.year}',
                     style: const TextStyle(fontSize: 11, color: AppColors.textLight),
                   ),
                 ],
@@ -112,7 +133,7 @@ class _EvidenceGalleryScreenState extends State<EvidenceGalleryScreen> {
             const Divider(height: 1),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Đóng'),
+              child: const Text('Dong'),
             ),
           ],
         ),
@@ -127,12 +148,11 @@ class _EvidenceGalleryScreenState extends State<EvidenceGalleryScreen> {
     return AppScaffold(
       useSafeArea: true,
       appBar: const CustomAppBar(
-        title: 'Thư viện minh chứng',
+        title: 'Thu vien minh chung',
         showBackButton: false,
       ),
       body: Column(
         children: [
-          // Horizontal filters
           Container(
             height: 48,
             color: Colors.white,
@@ -167,10 +187,9 @@ class _EvidenceGalleryScreenState extends State<EvidenceGalleryScreen> {
             ),
           ),
           const Divider(height: 1, color: AppColors.divider),
-          
           Expanded(
             child: list.isEmpty
-                ? const Center(child: Text('Không tìm thấy ảnh minh chứng nào.'))
+                ? const Center(child: Text('Khong tim thay anh minh chung nao.'))
                 : GridView.builder(
                     padding: const EdgeInsets.all(AppSizes.m),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(

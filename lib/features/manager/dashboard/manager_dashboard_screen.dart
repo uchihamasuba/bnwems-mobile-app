@@ -1,339 +1,300 @@
 import 'package:flutter/material.dart';
+
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
-import '../../../core/widgets/app_scaffold.dart';
-import '../../../core/widgets/custom_app_bar.dart';
-import '../../../core/widgets/info_card.dart';
-import '../../../core/widgets/section_title.dart';
-import '../../../core/widgets/status_chip.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../core/widgets/app_scaffold.dart';
+import '../../../core/widgets/info_card.dart';
+import '../../../core/widgets/status_chip.dart';
 import '../../../services/auth_service.dart';
 import '../../../shared/mock/mock_data.dart';
 import '../../../shared/models/order_status.dart';
 import '../../../shared/models/core_models.dart';
+import '../widgets/manager_app_header.dart';
+import '../widgets/manager_priority_badge.dart';
+import '../widgets/manager_quick_action_tile.dart';
+import '../widgets/manager_section_header.dart';
+import '../widgets/manager_statistic_card.dart';
+import '../widgets/manager_task_card.dart';
 
 class ManagerDashboardScreen extends StatelessWidget {
   const ManagerDashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final todayOrdersCount = MockData.orders.where((o) => o.orderStatus != OrderStatus.closed && o.orderStatus != OrderStatus.cancelled).length;
-    final pendingSurveys = MockData.surveyReports.where((r) => r.approvalStatus == 'Pending').toList();
-    final pendingChanges = MockData.changeRequests.where((cr) => cr.approvalStatus == 'Pending').toList();
-    final pendingPayments = MockData.paymentConfirmations.where((p) => p.status == 'Pending').toList();
-    final totalPendingApprovals = pendingSurveys.length + pendingChanges.length + pendingPayments.length;
+    final todayOrders = MockData.orders
+        .where(
+          (order) =>
+              order.orderStatus != OrderStatus.closed &&
+              order.orderStatus != OrderStatus.cancelled,
+        )
+        .toList();
+    final urgentNotifications = MockData.notifications
+        .where((item) => item.priority == 'High')
+        .toList();
+    final pendingSurveys = MockData.surveyReports
+        .where((item) => item.approvalStatus == 'Pending')
+        .toList();
+    final pendingChanges = MockData.changeRequests
+        .where((item) => item.approvalStatus == 'Pending')
+        .toList();
+    final pendingPayments = MockData.paymentConfirmations
+        .where((item) => item.status == 'Pending')
+        .toList();
+    final pendingApprovals =
+        pendingSurveys.length + pendingChanges.length + pendingPayments.length;
+    final focusItems = todayOrders.where((order) => order.hasEmergency).toList();
+    final displayItems = focusItems.isNotEmpty ? focusItems : todayOrders.take(2).toList();
 
     return AppScaffold(
       useSafeArea: true,
-      appBar: CustomAppBar(
-        title: 'Manager Mobile App',
-        showBackButton: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout_rounded, color: AppColors.error),
-            onPressed: () async {
-              await AuthService.logout();
-              if (!context.mounted) return;
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                AppRoutes.login,
-                (route) => false,
-              );
-            },
-          )
+      body: ListView(
+        padding: const EdgeInsets.all(AppSizes.m),
+        children: [
+          ManagerAppHeader(
+            title: 'Xin chào, Manager',
+            subtitle:
+                'Hôm nay bạn có ${todayOrders.length} đơn cần theo dõi và $pendingApprovals mục chờ xử lý.',
+            trailing: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.14),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: IconButton(
+                onPressed: () async {
+                  await AuthService.logout();
+                  if (!context.mounted) {
+                    return;
+                  }
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    AppRoutes.login,
+                    (route) => false,
+                  );
+                },
+                icon: const Icon(Icons.logout_rounded, color: Colors.white),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSizes.l),
+          GridView.count(
+            crossAxisCount: 2,
+            crossAxisSpacing: AppSizes.m,
+            mainAxisSpacing: AppSizes.m,
+            childAspectRatio: 1.18,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              ManagerStatisticCard(
+                label: 'Đơn hàng hôm nay',
+                value: '${todayOrders.length}',
+                icon: Icons.event_note_rounded,
+                color: AppColors.primary,
+                highlight: todayOrders.isNotEmpty,
+              ),
+              ManagerStatisticCard(
+                label: 'Task đang xử lý',
+                value:
+                    '${todayOrders.where((item) => item.fieldProgressStatus != 'Completed').length}',
+                icon: Icons.play_circle_outline_rounded,
+                color: AppColors.info,
+                highlight: true,
+              ),
+              ManagerStatisticCard(
+                label: 'Cảnh báo khẩn',
+                value: '${urgentNotifications.length}',
+                icon: Icons.crisis_alert_rounded,
+                color: AppColors.error,
+                highlight: urgentNotifications.isNotEmpty,
+              ),
+              ManagerStatisticCard(
+                label: 'Mục chờ duyệt',
+                value: '$pendingApprovals',
+                icon: Icons.fact_check_outlined,
+                color: AppColors.warning,
+                highlight: pendingApprovals > 0,
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSizes.l),
+          const ManagerSectionHeader(
+            title: 'Lối tắt điều hành',
+            subtitle: 'Mở nhanh những khu vực Manager dùng thường xuyên nhất.',
+          ),
+          const SizedBox(height: AppSizes.m),
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisSpacing: AppSizes.m,
+            mainAxisSpacing: AppSizes.m,
+            childAspectRatio: 1.25,
+            children: [
+              ManagerQuickActionTile(
+                label: 'Đơn hàng hôm nay',
+                icon: Icons.today_rounded,
+                color: AppColors.primary,
+                onTap: () => Navigator.pushNamed(context, AppRoutes.managerToday),
+              ),
+              ManagerQuickActionTile(
+                label: 'Theo dõi tiến độ',
+                icon: Icons.timeline_rounded,
+                color: AppColors.info,
+                onTap: () =>
+                    Navigator.pushNamed(context, AppRoutes.managerFieldProgress),
+              ),
+              ManagerQuickActionTile(
+                label: 'Yêu cầu phát sinh',
+                icon: Icons.published_with_changes_rounded,
+                color: AppColors.warning,
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  AppRoutes.managerChangeRequestApproval,
+                ),
+              ),
+              ManagerQuickActionTile(
+                label: 'Xác nhận thanh toán',
+                icon: Icons.payments_outlined,
+                color: AppColors.success,
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  AppRoutes.managerPaymentConfirmation,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSizes.l),
+          const ManagerSectionHeader(
+            title: 'Việc cần xử lý hôm nay',
+            subtitle: 'Ưu tiên các đơn đang vận hành hoặc có cảnh báo cần phản hồi nhanh.',
+          ),
+          const SizedBox(height: AppSizes.m),
+          ...displayItems.map(
+            (order) => Padding(
+              padding: const EdgeInsets.only(bottom: AppSizes.m),
+              child: ManagerTaskCard(
+                order: order,
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  AppRoutes.managerOrderDetail,
+                  arguments: order.id,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSizes.s),
+          const ManagerSectionHeader(
+            title: 'Cảnh báo mới nhất',
+            subtitle: 'Các thông báo ảnh hưởng tới tiến độ, phát sinh và thanh toán.',
+          ),
+          const SizedBox(height: AppSizes.m),
+          if (urgentNotifications.isEmpty)
+            const InfoCard(
+              child: Text(
+                'Hiện chưa có cảnh báo khẩn nào mới. Hệ thống đang vận hành ổn định.',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                  height: 1.4,
+                ),
+              ),
+            )
+          else
+            ...urgentNotifications.take(3).map(
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: AppSizes.m),
+                child: _AlertCard(notification: item),
+              ),
+            ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSizes.m),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildWelcomeHeader(),
-            AppSizes.spacingM,
-            
-            // Emergency Alert Box if there are critical pending tasks/warnings
-            _buildEmergencyAlertBox(),
-            AppSizes.spacingL,
+    );
+  }
+}
 
-            const SectionTitle(title: 'Công việc cần duyệt gấp'),
-            AppSizes.spacingM,
-            _buildActionStatsGrid(
-              todayOrders: todayOrdersCount,
-              surveys: pendingSurveys.length,
-              changes: pendingChanges.length,
-              payments: pendingPayments.length,
+class _AlertCard extends StatelessWidget {
+  const _AlertCard({required this.notification});
+
+  final MobileNotification notification;
+
+  @override
+  Widget build(BuildContext context) {
+    return InfoCard(
+      onTap: () => Navigator.pushNamed(
+        context,
+        AppRoutes.managerNotifications,
+      ),
+      color: notification.priority == 'High'
+          ? AppColors.errorLight.withOpacity(0.55)
+          : Colors.white,
+      borderColor: notification.priority == 'High'
+          ? AppColors.error.withOpacity(0.2)
+          : AppColors.divider,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: AppColors.error.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(14),
             ),
-            AppSizes.spacingL,
-
-            // Quick navigation panel
-            const SectionTitle(title: 'Lối tắt điều hành'),
-            AppSizes.spacingM,
-            _buildQuickActions(context),
-            AppSizes.spacingL,
-
-            // Lists of pending action items
-            if (totalPendingApprovals > 0) ...[
-              const SectionTitle(title: 'Danh sách hồ sơ chờ duyệt'),
-              AppSizes.spacingM,
-              ...pendingSurveys.map((survey) => _buildSurveyPendingCard(context, survey)),
-              const SizedBox(height: 8),
-              ...pendingChanges.map((cr) => _buildChangePendingCard(context, cr)),
-              const SizedBox(height: 8),
-              ...pendingPayments.map((p) => _buildPaymentPendingCard(context, p)),
-              const SizedBox(height: AppSizes.xl),
-            ] else ...[
-              const InfoCard(
-                child: Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Text(
-                      'Tất cả hồ sơ hiện trường đã được xử lý hoàn thành!',
-                      style: TextStyle(color: AppColors.textSecondary),
+            child: const Icon(
+              Icons.warning_amber_rounded,
+              color: AppColors.error,
+            ),
+          ),
+          const SizedBox(width: AppSizes.m),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        notification.title,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
+                    const ManagerPriorityBadge(
+                      label: 'Khẩn cấp',
+                      compact: true,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  notification.message,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    height: 1.4,
                   ),
                 ),
-              ),
-              const SizedBox(height: AppSizes.xl),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWelcomeHeader() {
-    return Row(
-      children: [
-        CircleAvatar(
-          radius: 24,
-          backgroundColor: AppColors.primaryLight,
-          child: const Icon(Icons.support_agent_rounded, color: AppColors.primary, size: 24),
-        ),
-        const SizedBox(width: AppSizes.m),
-        const Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Xin chào, Manager!',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-              ),
-              Text(
-                'Ứng dụng di động duyệt khẩn cấp',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEmergencyAlertBox() {
-    final delayedTasks = MockData.notifications.where((n) => n.priority == 'High').toList();
-    if (delayedTasks.isEmpty) return const SizedBox.shrink();
-
-    return Container(
-      margin: const EdgeInsets.only(top: 12),
-      padding: const EdgeInsets.all(AppSizes.m),
-      decoration: BoxDecoration(
-        color: AppColors.errorLight.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
-        border: Border.all(color: AppColors.error.withOpacity(0.2)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 24),
-          const SizedBox(width: AppSizes.m),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Cảnh báo khẩn cấp hiện trường (${delayedTasks.length})',
-                  style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.bold, fontSize: 13),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  delayedTasks.first.message,
-                  style: TextStyle(color: AppColors.error.withOpacity(0.9), fontSize: 12, height: 1.4),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Text(
+                      notification.orderCode,
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const Spacer(),
+                    StatusChip(label: notification.type),
+                  ],
                 ),
               ],
             ),
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionStatsGrid({
-    required int todayOrders,
-    required int surveys,
-    required int changes,
-    required int payments,
-  }) {
-    return GridView.count(
-      crossAxisCount: 2,
-      crossAxisSpacing: AppSizes.m,
-      mainAxisSpacing: AppSizes.m,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio: 1.5,
-      children: [
-        _buildStatCard('Khảo sát chờ duyệt', '$surveys', Icons.explore_outlined, AppColors.info, surveys > 0),
-        _buildStatCard('Đổi thiết bị chờ duyệt', '$changes', Icons.change_circle_outlined, AppColors.warning, changes > 0),
-        _buildStatCard('Biên lai chờ duyệt', '$payments', Icons.payments_outlined, AppColors.success, payments > 0),
-        _buildStatCard('Đơn hàng vận hành', '$todayOrders', Icons.local_shipping_outlined, AppColors.primary, todayOrders > 0),
-      ],
-    );
-  }
-
-  Widget _buildStatCard(String title, String count, IconData icon, Color color, bool highlight) {
-    return InfoCard(
-      color: highlight ? color.withOpacity(0.04) : Colors.white,
-      borderColor: highlight ? color.withOpacity(0.4) : AppColors.divider,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Icon(icon, color: color, size: 18),
-            ],
           ),
-          Text(
-            count,
-            style: TextStyle(
-              color: highlight ? color : AppColors.textPrimary,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuickActions(BuildContext context) {
-    return InfoCard(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildQuickActionItem(context, 'Hôm nay', Icons.today_rounded, AppRoutes.managerToday),
-          _buildQuickActionItem(context, 'Bộ ảnh', Icons.photo_library_outlined, AppRoutes.managerEvidenceGallery),
-          _buildQuickActionItem(context, 'Yêu cầu đổi', Icons.published_with_changes_rounded, AppRoutes.managerChangeRequestApproval),
-          _buildQuickActionItem(context, 'Xác nhận cọc', Icons.account_balance_wallet_outlined, AppRoutes.managerPaymentConfirmation),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuickActionItem(BuildContext context, String label, IconData icon, String route) {
-    return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, route),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.primaryLight.withOpacity(0.6),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: AppColors.primary, size: 20),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: const TextStyle(color: AppColors.textPrimary, fontSize: 11, fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSurveyPendingCard(BuildContext context, SurveyReport survey) {
-    return InfoCard(
-      onTap: () => Navigator.pushNamed(context, AppRoutes.managerSurveyReview, arguments: survey.orderCode),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: const BoxDecoration(color: AppColors.infoLight, shape: BoxShape.circle),
-            child: const Icon(Icons.explore_rounded, color: AppColors.info, size: 20),
-          ),
-          const SizedBox(width: AppSizes.m),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Báo cáo khảo sát chờ duyệt', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                Text('Đơn: ${survey.orderCode} - Khách: ${survey.customerName}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
-              ],
-            ),
-          ),
-          StatusChip(label: survey.approvalStatus),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChangePendingCard(BuildContext context, ChangeRequest cr) {
-    return InfoCard(
-      onTap: () => Navigator.pushNamed(context, AppRoutes.managerChangeRequestApproval, arguments: cr.id),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: const BoxDecoration(color: AppColors.warningLight, shape: BoxShape.circle),
-            child: const Icon(Icons.change_circle_rounded, color: AppColors.warning, size: 20),
-          ),
-          const SizedBox(width: AppSizes.m),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Yêu cầu đổi thiết bị', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                Text('${cr.requestType}: ${cr.itemName} (x${cr.quantity})', style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
-              ],
-            ),
-          ),
-          StatusChip(label: cr.approvalStatus),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPaymentPendingCard(BuildContext context, PaymentConfirmation payment) {
-    return InfoCard(
-      onTap: () => Navigator.pushNamed(context, AppRoutes.managerPaymentConfirmation, arguments: payment.id),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: const BoxDecoration(color: AppColors.successLight, shape: BoxShape.circle),
-            child: const Icon(Icons.payments_rounded, color: AppColors.success, size: 20),
-          ),
-          const SizedBox(width: AppSizes.m),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Xác nhận thanh toán', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                Text('${payment.paymentType} - Khách: ${payment.customerName}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
-              ],
-            ),
-          ),
-          StatusChip(label: payment.status),
         ],
       ),
     );

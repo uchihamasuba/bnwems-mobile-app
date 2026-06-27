@@ -3,34 +3,36 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // Primary PaletteS
-  static const Color primary = Color(0xFF5F5DEC); // Sleek Indigo/Blue
-  static const Color primaryLight = Color(0xFFEEECFD); // Soft Lavender Light
-  static const Color primaryDark = Color(0xFF3B39C3);
-  
+  // Primary palette
+  static const Color primary = Color(0xFF123B63);
+  static const Color primaryLight = Color(0xFFEAF2FB);
+  static const Color primaryDark = Color(0xFF0B2744);
+
   // Secondary / Accent
-  static const Color secondary = Color(0xFF9E8CF4); // Light purple
-  static const Color accent = Color(0xFFFF7A8A); // Warm coral accent for wedding theme
-  
-  // Neutral Colors
-  static const Color background = Color(0xFFF8FAFC); // Very light grey-blue background
+  static const Color secondary = Color(0xFF2D6EA3);
+  static const Color accent = Color(0xFFFF8A5B);
+
+  // Neutral colors
+  static const Color background = Color(0xFFF4F7FB);
   static const Color cardBackground = Colors.white;
-  static const Color divider = Color(0xFFE2E8F0);
-  
-  // Text Colors
-  static const Color textPrimary = Color(0xFF0F172A); // Slate 900
-  static const Color textSecondary = Color(0xFF64748B); // Slate 500
-  static const Color textLight = Color(0xFF94A3B8); // Slate 400
-  
-  // Status Colors
-  static const Color success = Color(0xFF10B981); // Emerald 500
+  static const Color divider = Color(0xFFD7E1EC);
+
+  // Text colors
+  static const Color textPrimary = Color(0xFF102033);
+  static const Color textSecondary = Color(0xFF5F7288);
+  static const Color textLight = Color(0xFF95A4B5);
+
+  // Status colors
+  static const Color success = Color(0xFF169B62);
   static const Color successLight = Color(0xFFD1FAE5);
-  static const Color warning = Color(0xFFF59E0B); // Amber 500
-  static const Color warningLight = Color(0xFFFEF3C7);
-  static const Color error = Color(0xFFEF4444); // Red 500
-  static const Color errorLight = Color(0xFFFEE2E2);
-  static const Color info = Color(0xFF0EA5E9); // Sky 500
-  static const Color infoLight = Color(0xFFE0F2FE);
+  static const Color warning = Color(0xFFEC8A1C);
+  static const Color warningLight = Color(0xFFFFF1D9);
+  static const Color error = Color(0xFFE05252);
+  static const Color errorLight = Color(0xFFFDE4E4);
+  static const Color info = Color(0xFF2383D9);
+  static const Color infoLight = Color(0xFFE3F0FF);
+  static const Color completed = Color(0xFF5A4FCF);
+  static const Color completedLight = Color(0xFFEAE7FF);
 
   // Soft Shadow
   static List<BoxShadow> get softShadow => [

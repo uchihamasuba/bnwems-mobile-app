@@ -1,137 +1,252 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_sizes.dart';
-import '../../../core/widgets/app_scaffold.dart';
-import '../../../core/widgets/custom_app_bar.dart';
-import '../../../core/widgets/info_card.dart';
-import '../../../core/widgets/status_chip.dart';
-import '../../../core/routes/app_routes.dart';
-import '../../../shared/mock/mock_data.dart';
-import '../../../shared/models/core_models.dart';
 
-class ManagerTodayScreen extends StatelessWidget {
+import '../../../core/constants/app_sizes.dart';
+import '../../../core/routes/app_routes.dart';
+import '../../../core/widgets/app_scaffold.dart';
+import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/info_card.dart';
+import '../../../core/widgets/search_input.dart';
+import '../../../shared/mock/mock_data.dart';
+import '../../../shared/models/order_status.dart';
+import '../../../shared/models/core_models.dart';
+import '../widgets/manager_app_header.dart';
+import '../widgets/manager_priority_badge.dart';
+import '../widgets/manager_section_header.dart';
+import '../widgets/manager_statistic_card.dart';
+import '../widgets/manager_task_card.dart';
+
+class ManagerTodayScreen extends StatefulWidget {
   const ManagerTodayScreen({super.key});
 
   @override
+  State<ManagerTodayScreen> createState() => _ManagerTodayScreenState();
+}
+
+class _ManagerTodayScreenState extends State<ManagerTodayScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _activeFilter = 'Tất cả';
+  String _query = '';
+
+  static const List<String> _filters = [
+    'Tất cả',
+    'Khẩn cấp',
+    'Đang xử lý',
+    'Chờ duyệt',
+    'Hoàn tất',
+  ];
+
+  List<MobileOrder> get _filteredOrders {
+    return MockData.orders.where((order) {
+      final matchesQuery =
+          _query.isEmpty ||
+          order.id.toLowerCase().contains(_query.toLowerCase()) ||
+          order.customerName.toLowerCase().contains(_query.toLowerCase()) ||
+          order.location.toLowerCase().contains(_query.toLowerCase());
+
+      final matchesFilter = switch (_activeFilter) {
+        'Khẩn cấp' => order.hasEmergency,
+        'Đang xử lý' => order.fieldProgressStatus != 'Completed',
+        'Chờ duyệt' => order.surveyStatus == 'Pending',
+        'Hoàn tất' => order.fieldProgressStatus == 'Completed',
+        _ => true,
+      };
+
+      return matchesQuery && matchesFilter;
+    }).toList();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final list = MockData.orders;
+    final list = _filteredOrders;
+    final allOrders = MockData.orders;
+    final urgentCount = allOrders.where((item) => item.hasEmergency).length;
+    final activeCount = allOrders
+        .where((item) => item.orderStatus != OrderStatus.closed)
+        .length;
+    final pendingCount = allOrders
+        .where((item) => item.surveyStatus == 'Pending')
+        .length;
+    final latestUrgent = allOrders.cast<MobileOrder?>().firstWhere(
+      (item) => item?.urgencyMessage != null,
+      orElse: () => null,
+    );
 
     return AppScaffold(
       useSafeArea: true,
-      appBar: const CustomAppBar(
-        title: 'Đơn hàng Hôm nay & Tiến độ',
-        showBackButton: false,
-      ),
-      body: list.isEmpty
-          ? const Center(child: Text('Hôm nay không có đơn sự kiện nào.'))
-          : ListView.separated(
-              padding: const EdgeInsets.all(AppSizes.m),
-              itemCount: list.length,
-              separatorBuilder: (_, __) => AppSizes.spacingM,
-              itemBuilder: (context, index) {
-                final order = list[index];
-                return _buildTodayOrderCard(context, order);
-              },
-            ),
-    );
-  }
-
-  Widget _buildTodayOrderCard(BuildContext context, MobileOrder order) {
-    final hasUrgency = order.urgencyMessage != null;
-
-    return InfoCard(
-      borderColor: hasUrgency ? AppColors.error.withOpacity(0.5) : AppColors.divider,
-      onTap: () {
-        Navigator.pushNamed(
-          context,
-          AppRoutes.managerOrderDetail,
-          arguments: order.id,
-        );
-      },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      body: ListView(
+        padding: const EdgeInsets.all(AppSizes.m),
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                order.id,
-                style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 13),
-              ),
-              StatusChip(label: order.orderStatus.displayName),
-            ],
+          const ManagerAppHeader(
+            title: 'Đơn hàng và task hôm nay',
+            subtitle:
+                'Tập trung các đầu việc phát sinh trong ngày để Manager theo dõi và phản hồi nhanh.',
           ),
-          const SizedBox(height: 8),
-          Text(
-            order.customerName,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary),
-          ),
-          const SizedBox(height: 8),
-          
-          // Venue Location
-          Row(
-            children: [
-              const Icon(Icons.location_on_rounded, size: 14, color: AppColors.textSecondary),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  order.location,
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-
-          // Leader Assigned
-          Row(
-            children: [
-              const Icon(Icons.person_rounded, size: 14, color: AppColors.textSecondary),
-              const SizedBox(width: 6),
-              Text(
-                'Phụ trách: ${order.leaderStaffName}',
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-
-          // Operational Status step
-          Row(
-            children: [
-              const Icon(Icons.run_circle_outlined, size: 14, color: AppColors.primary),
-              const SizedBox(width: 6),
-              Text(
-                'Bước hiện trường: ${order.fieldProgressStatus}',
-                style: const TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-
-          if (hasUrgency) ...[
-            const Divider(height: 20, color: AppColors.divider),
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.errorLight.withOpacity(0.4),
-                borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-              ),
-              child: Row(
+          const SizedBox(height: AppSizes.l),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompactPhone = constraints.maxWidth < 380;
+              return GridView.count(
+                crossAxisCount: isCompactPhone ? 2 : 3,
+                crossAxisSpacing: AppSizes.s,
+                mainAxisSpacing: AppSizes.s,
+                childAspectRatio: isCompactPhone ? 1.18 : 1.0,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
                 children: [
-                  const Icon(Icons.warning_rounded, color: AppColors.error, size: 16),
-                  const SizedBox(width: 6),
+                  ManagerStatisticCard(
+                    label: 'Hôm nay',
+                    value: '${allOrders.length}',
+                    icon: Icons.today_rounded,
+                    color: Colors.blue,
+                    highlight: allOrders.isNotEmpty,
+                    compact: true,
+                  ),
+                  ManagerStatisticCard(
+                    label: 'Đang xử lý',
+                    value: '$activeCount',
+                    icon: Icons.sync_rounded,
+                    color: Colors.orange,
+                    highlight: activeCount > 0,
+                    compact: true,
+                  ),
+                  ManagerStatisticCard(
+                    label: 'Khẩn cấp',
+                    value: '$urgentCount',
+                    icon: Icons.priority_high_rounded,
+                    color: Colors.red,
+                    highlight: urgentCount > 0,
+                    compact: true,
+                  ),
+                ],
+              );
+            },
+          ),
+          if (latestUrgent != null) ...[
+            const SizedBox(height: AppSizes.m),
+            InfoCard(
+              borderColor: Colors.red.withOpacity(0.2),
+              color: Colors.red.withOpacity(0.06),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.red,
+                    ),
+                  ),
+                  const SizedBox(width: AppSizes.m),
                   Expanded(
-                    child: Text(
-                      order.urgencyMessage!,
-                      style: const TextStyle(color: AppColors.error, fontSize: 11, fontWeight: FontWeight.bold),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Cảnh báo nổi bật hôm nay',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                            ManagerPriorityBadge(
+                              label: 'Khẩn cấp',
+                              compact: true,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          latestUrgent.urgencyMessage!,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          latestUrgent.id,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
           ],
+          const SizedBox(height: AppSizes.l),
+          SearchInput(
+            controller: _searchController,
+            hintText: 'Tìm theo mã đơn, khách hàng, địa điểm...',
+            onChanged: (value) => setState(() => _query = value.trim()),
+            onClear: () => setState(() => _query = ''),
+          ),
+          const SizedBox(height: AppSizes.m),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: _filters.map((filter) {
+                final isSelected = filter == _activeFilter;
+                return Padding(
+                  padding: const EdgeInsets.only(right: AppSizes.s),
+                  child: ChoiceChip(
+                    label: Text(filter),
+                    selected: isSelected,
+                    onSelected: (_) => setState(() => _activeFilter = filter),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: AppSizes.l),
+          ManagerSectionHeader(
+            title: 'Danh sách cần theo dõi',
+            subtitle:
+                'Hiển thị ${list.length} mục phù hợp với bộ lọc hiện tại. Có $pendingCount mục chưa duyệt.',
+          ),
+          const SizedBox(height: AppSizes.m),
+          if (list.isEmpty)
+            const SizedBox(
+              height: 320,
+              child: EmptyState(
+                title: 'Không có dữ liệu phù hợp',
+                description:
+                    'Thử đổi bộ lọc hoặc từ khóa tìm kiếm để xem thêm đơn hàng và task khác.',
+                icon: Icons.search_off_rounded,
+              ),
+            )
+          else
+            ...list.map(
+              (order) => Padding(
+                padding: const EdgeInsets.only(bottom: AppSizes.m),
+                child: ManagerTaskCard(
+                  order: order,
+                  onTap: () => Navigator.pushNamed(
+                    context,
+                    AppRoutes.managerOrderDetail,
+                    arguments: order.id,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
