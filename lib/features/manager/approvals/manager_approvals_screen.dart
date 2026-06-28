@@ -4,116 +4,172 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/widgets/app_scaffold.dart';
-import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/info_card.dart';
+import '../../../core/widgets/loading_state.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../../../core/widgets/secondary_button.dart';
-import '../../../shared/mock/mock_data.dart';
+import '../../notifications/screens/notifications_screen.dart';
+import '../models/manager_mobile_models.dart';
+import '../services/manager_mobile_service.dart';
 import '../widgets/manager_app_header.dart';
+import '../widgets/manager_backend_gap_card.dart';
 import '../widgets/manager_priority_badge.dart';
 import '../widgets/manager_section_header.dart';
 
-class ManagerApprovalsScreen extends StatelessWidget {
+class ManagerApprovalsScreen extends StatefulWidget {
   const ManagerApprovalsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final surveyItems = MockData.surveyReports
-        .where((item) => item.approvalStatus == 'Pending')
-        .toList();
-    final changeItems = MockData.changeRequests
-        .where((item) => item.approvalStatus == 'Pending')
-        .toList();
-    final paymentItems = MockData.paymentConfirmations
-        .where((item) => item.status == 'Pending')
-        .toList();
+  State<ManagerApprovalsScreen> createState() => _ManagerApprovalsScreenState();
+}
 
-    return AppScaffold(
-      useSafeArea: true,
-      body: ListView(
-        padding: const EdgeInsets.all(AppSizes.m),
-        children: [
-          const ManagerAppHeader(
-            title: 'Duyệt nhanh',
-            subtitle:
-                'Tập trung các yêu cầu quan trọng để Manager xác nhận ngay trên điện thoại.',
-          ),
-          const SizedBox(height: AppSizes.l),
-          const ManagerSectionHeader(
-            title: 'Danh sách chờ xử lý',
-            subtitle: 'Ưu tiên các mục ảnh hưởng trực tiếp tới vận hành và thanh toán.',
-          ),
-          const SizedBox(height: AppSizes.m),
-          if (surveyItems.isEmpty && changeItems.isEmpty && paymentItems.isEmpty)
-            const SizedBox(
-              height: 320,
-              child: EmptyState(
-                title: 'Không có yêu cầu chờ duyệt',
-                description: 'Tất cả báo cáo, phát sinh và thanh toán đã được xử lý.',
-                icon: Icons.verified_rounded,
-              ),
+class _ManagerApprovalsScreenState extends State<ManagerApprovalsScreen> {
+  late Future<_ApprovalsData> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _loadData();
+  }
+
+  Future<_ApprovalsData> _loadData() async {
+    final results = await Future.wait([
+      ManagerMobileService.getDashboardSummary(),
+      ManagerMobileService.getNotifications(limit: 20),
+    ]);
+
+    final notifications = results[1] as List<ManagerNotificationItem>;
+    return _ApprovalsData(
+      summary: results[0] as ManagerDashboardSummary,
+      surveyNotifications: notifications.where(_isSurveyNotification).toList(),
+      paymentNotifications: notifications.where(_isPaymentNotification).toList(),
+    );
+  }
+
+  void _reload() {
+    setState(() {
+      _future = _loadData();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<_ApprovalsData>(
+      future: _future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const AppScaffold(
+            useSafeArea: true,
+            body: LoadingState(),
+          );
+        }
+
+        if (snapshot.hasError || !snapshot.hasData) {
+          return AppScaffold(
+            useSafeArea: true,
+            body: ErrorState(
+              message: snapshot.error.toString(),
+              onRetry: _reload,
             ),
-          ...surveyItems.map(
-            (item) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSizes.m),
-              child: _ApprovalCard(
-                title: 'Báo cáo khảo sát',
-                subtitle: '${item.orderCode} • ${item.customerName}',
-                description: item.notes,
-                priority: 'Khẩn cấp',
-                sender: item.leaderStaffName,
-                timestamp:
-                    '${item.surveyDate.hour.toString().padLeft(2, '0')}:${item.surveyDate.minute.toString().padLeft(2, '0')}',
-                onView: () => Navigator.pushNamed(
-                  context,
-                  AppRoutes.managerSurveyReview,
-                  arguments: item.orderCode,
-                ),
+          );
+        }
+
+        final data = snapshot.data!;
+
+        return AppScaffold(
+          useSafeArea: true,
+          body: ListView(
+            padding: const EdgeInsets.all(AppSizes.m),
+            children: [
+              const ManagerAppHeader(
+                title: 'Duyet nhanh',
+                subtitle:
+                    'Tap trung cac muc quan trong de Manager xu ly bang du lieu API that va thong bao hien co.',
               ),
-            ),
-          ),
-          ...changeItems.map(
-            (item) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSizes.m),
-              child: _ApprovalCard(
-                title: 'Phát sinh hiện trường',
-                subtitle: '${item.orderCode} • ${item.itemName}',
-                description: item.reason,
-                priority: 'Ảnh hưởng chi phí',
-                sender: item.noteFromLeader,
-                timestamp: 'Mới cập nhật',
+              const SizedBox(height: AppSizes.l),
+              const ManagerSectionHeader(
+                title: 'Trang thai approval hien tai',
+                subtitle:
+                    'Dashboard hien chi co count change request. Cac nhom khac dang su dung notification feed de dieu huong.',
+              ),
+              const SizedBox(height: AppSizes.m),
+              const ManagerBackendGapCard(
+                title: 'Approval queue chua day du API',
+                message:
+                    'Backend chua co list survey approvals, change request detail/list va payment requests cho manager mobile. Man nay da bo MockData va chi hien thong tin that dang co.',
+              ),
+              const SizedBox(height: AppSizes.m),
+              _ApprovalCard(
+                title: 'Bao cao khao sat',
+                subtitle: '${data.surveyNotifications.length} thong bao survey',
+                description:
+                    'Can them API list/detail survey approvals de hien noi dung cho duyet that.',
+                priority: 'Can API',
+                sender: 'Notifications feed',
+                timestamp: 'GET /notifications',
+                onView: data.surveyNotifications.isEmpty
+                    ? null
+                    : () => Navigator.pushNamed(
+                          context,
+                          AppRoutes.managerNotifications,
+                        ),
+              ),
+              _ApprovalCard(
+                title: 'Phat sinh hien truong',
+                subtitle:
+                    '${data.summary.pendingChangeRequests} muc pending trong dashboard',
+                description:
+                    'Da co PUT approve, nhung chua co GET detail/list de mobile hien noi dung thuc te.',
+                priority: 'Action only',
+                sender: 'GET /dashboard/manager',
+                timestamp: 'pendingChangeRequests',
                 onView: () => Navigator.pushNamed(
                   context,
                   AppRoutes.managerChangeRequestApproval,
-                  arguments: item.id,
                 ),
               ),
-            ),
-          ),
-          ...paymentItems.map(
-            (item) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSizes.m),
-              child: _ApprovalCard(
-                title: 'Xác nhận thanh toán',
-                subtitle: '${item.orderCode} • ${item.customerName}',
+              _ApprovalCard(
+                title: 'Xac nhan thanh toan',
+                subtitle: '${data.paymentNotifications.length} thong bao payment',
                 description:
-                    '${item.paymentType} • ${item.paidAmount.toStringAsFixed(0)} đ',
-                priority: 'Cần xác minh',
-                sender: item.submittedBy,
-                timestamp:
-                    '${item.submittedAt.hour.toString().padLeft(2, '0')}:${item.submittedAt.minute.toString().padLeft(2, '0')}',
+                    'Can them GET payment detail/proof hoac payment-request list de Manager review dung nghiep vu.',
+                priority: 'Can API',
+                sender: 'Notifications feed',
+                timestamp: 'GET /notifications',
                 onView: () => Navigator.pushNamed(
                   context,
                   AppRoutes.managerPaymentConfirmation,
-                  arguments: item.id,
                 ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
+
+  bool _isSurveyNotification(ManagerNotificationItem item) {
+    final raw = '${item.type} ${item.refType} ${item.title}'.toLowerCase();
+    return raw.contains('survey');
+  }
+
+  bool _isPaymentNotification(ManagerNotificationItem item) {
+    final raw = '${item.type} ${item.refType} ${item.title}'.toLowerCase();
+    return raw.contains('payment');
+  }
+}
+
+class _ApprovalsData {
+  const _ApprovalsData({
+    required this.summary,
+    required this.surveyNotifications,
+    required this.paymentNotifications,
+  });
+
+  final ManagerDashboardSummary summary;
+  final List<ManagerNotificationItem> surveyNotifications;
+  final List<ManagerNotificationItem> paymentNotifications;
 }
 
 class _ApprovalCard extends StatelessWidget {
@@ -133,155 +189,99 @@ class _ApprovalCard extends StatelessWidget {
   final String priority;
   final String sender;
   final String timestamp;
-  final VoidCallback onView;
+  final VoidCallback? onView;
 
   @override
   Widget build(BuildContext context) {
-    return InfoCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Expanded(
-                child: SizedBox.shrink(),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSizes.m),
+      child: InfoCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Expanded(child: SizedBox.shrink()),
+                ManagerPriorityBadge(label: priority, compact: true),
+              ],
+            ),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
               ),
-              ManagerPriorityBadge(label: priority, compact: true),
-            ],
-          ),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
             ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            subtitle,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: AppColors.primary,
+            const SizedBox(height: 6),
+            Text(
+              subtitle,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            description,
-            style: const TextStyle(
-              fontSize: 13,
-              height: 1.4,
-              color: AppColors.textSecondary,
+            const SizedBox(height: 10),
+            Text(
+              description,
+              style: const TextStyle(
+                fontSize: 13,
+                height: 1.4,
+                color: AppColors.textSecondary,
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Người gửi: $sender',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Nguon: $sender',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+                Text(
+                  timestamp,
                   style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
+                    fontSize: 11,
+                    color: AppColors.textLight,
                   ),
                 ),
-              ),
-              Text(
-                timestamp,
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: AppColors.textLight,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: SecondaryButton(
-                  text: 'Từ chối',
-                  icon: Icons.close_rounded,
-                  onPressed: () => _showConfirmSheet(
-                    context,
-                    title: 'Xác nhận từ chối',
-                    description: 'Bạn có chắc muốn từ chối yêu cầu này không?',
+              ],
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: SecondaryButton(
+                    text: 'Thong bao',
+                    icon: Icons.notifications_active_outlined,
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => const NotificationsScreen(),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: AppSizes.s),
-              Expanded(
-                child: PrimaryButton(
-                  text: 'Xem chi tiết',
-                  icon: Icons.arrow_forward_rounded,
-                  onPressed: onView,
+                const SizedBox(width: AppSizes.s),
+                Expanded(
+                  child: PrimaryButton(
+                    text: 'Mo man hinh',
+                    icon: Icons.arrow_forward_rounded,
+                    onPressed: onView,
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showConfirmSheet(
-    BuildContext context, {
-    required String title,
-    required String description,
-  }) {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppSizes.radiusExtraLarge),
+              ],
+            ),
+          ],
         ),
       ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSizes.l,
-            AppSizes.l,
-            AppSizes.l,
-            AppSizes.l,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                description,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppColors.textSecondary,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: AppSizes.l),
-              SizedBox(
-                width: double.infinity,
-                child: SecondaryButton(
-                  text: 'Đóng',
-                  icon: Icons.check_rounded,
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }

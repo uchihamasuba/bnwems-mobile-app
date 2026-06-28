@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
+
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/custom_app_bar.dart';
+import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/info_card.dart';
-import '../../../core/widgets/section_title.dart';
-import '../../../core/widgets/status_chip.dart';
+import '../../../core/widgets/loading_state.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../../../core/widgets/secondary_button.dart';
+import '../../../core/widgets/section_title.dart';
+import '../../../core/widgets/status_chip.dart';
+import '../../manager/models/manager_mobile_models.dart';
 import '../../manager/models/manager_route_args.dart';
-import '../../../shared/mock/mock_data.dart';
-import '../../../shared/models/order_status.dart';
-import '../../../shared/models/payment_status.dart';
-import '../../../shared/models/core_models.dart';
+import '../../manager/services/manager_mobile_service.dart';
+import '../../manager/widgets/manager_backend_gap_card.dart';
 
 class PaymentConfirmationScreen extends StatefulWidget {
   const PaymentConfirmationScreen({super.key});
@@ -22,118 +24,166 @@ class PaymentConfirmationScreen extends StatefulWidget {
 }
 
 class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
-  late PaymentConfirmation _payment;
+  late Future<_PaymentScreenData> _future;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _future = _loadData();
+  }
+
+  Future<_PaymentScreenData> _loadData() async {
     final args = ModalRoute.of(context)?.settings.arguments;
+    String? paymentId;
+    String? orderId;
+
     if (args is ManagerPaymentRouteArgs) {
-      _loadPayment(args.paymentId);
+      paymentId = args.paymentId;
+      orderId = args.orderId;
     } else if (args is String) {
-      _loadPayment(args);
-    } else {
-      _loadPayment(null);
+      orderId = args;
     }
-  }
 
-  void _loadPayment(String? paymentId) {
-    if (paymentId != null) {
-      _payment = MockData.paymentConfirmations.firstWhere(
-        (p) => p.id == paymentId,
-        orElse: () => MockData.paymentConfirmations.first,
-      );
-    } else {
-      // Find first pending or fallback to first
-      _payment = MockData.paymentConfirmations.firstWhere(
-        (p) => p.status == 'Pending',
-        orElse: () => MockData.paymentConfirmations.first,
-      );
-    }
-  }
-
-  void _updateStatus(String newStatus, String snackBarMessage) {
-    setState(() {
-      _payment.status = newStatus;
-
-      // If approved, update order financial status & overall state in mock data
-      if (newStatus == 'Approved') {
-        final orderIdx = MockData.orders.indexWhere((o) => o.id == _payment.orderCode);
-        if (orderIdx != -1) {
-          final o = MockData.orders[orderIdx];
-          final newPaid = o.paidAmount + _payment.paidAmount;
-          
-          OrderStatus newOrderStatus = o.orderStatus;
-          PaymentStatus newPaymentStatus = o.paymentStatus;
-          
-          if (_payment.paymentType == 'Deposit') {
-            newOrderStatus = OrderStatus.deposited;
-            newPaymentStatus = PaymentStatus.partiallyPaid;
-          } else if (_payment.paymentType == 'Final Payment' || newPaid >= o.totalAmount) {
-            newOrderStatus = OrderStatus.closed;
-            newPaymentStatus = PaymentStatus.paid;
+    if (orderId != null && orderId.isNotEmpty) {
+      final payments = await ManagerMobileService.getPaymentsByOrder(orderId);
+      ManagerPaymentRecord? selected;
+      if (paymentId == null || paymentId.isEmpty) {
+        selected = payments.isNotEmpty ? payments.first : null;
+      } else {
+        for (final item in payments) {
+          if (item.paymentId == paymentId) {
+            selected = item;
+            break;
           }
-
-          MockData.orders[orderIdx] = o.copyWith(
-            paidAmount: newPaid > o.totalAmount ? o.totalAmount : newPaid,
-            orderStatus: newOrderStatus,
-            paymentStatus: newPaymentStatus,
-          );
         }
+        selected ??= payments.isNotEmpty ? payments.first : null;
       }
-    });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(snackBarMessage)),
+      return _PaymentScreenData(
+        orderId: orderId,
+        paymentId: paymentId,
+        payment: selected,
+      );
+    }
+
+    if (paymentId != null && paymentId.isNotEmpty) {
+      return _PaymentScreenData(
+        orderId: null,
+        paymentId: paymentId,
+        payment: null,
+      );
+    }
+
+    throw Exception(
+      'Khong tim thay orderId/paymentId de tai man hinh thanh toan.',
     );
-    Navigator.pop(context);
+  }
+
+  Future<void> _confirmPayment(_PaymentScreenData data) async {
+    final payment = data.payment;
+    if (payment == null) {
+      return;
+    }
+
+    try {
+      await ManagerMobileService.confirmPayment(
+        paymentId: payment.paymentId,
+        status: 'completed',
+      );
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Da goi API confirm payment thanh cong.')),
+      );
+      setState(() {
+        _future = _loadData();
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    }
+  }
+
+  void _showMissingProofApi() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Backend chua co payment detail/proof API day du cho luong manager review.',
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final currencyFormat = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
+    return FutureBuilder<_PaymentScreenData>(
+      future: _future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const AppScaffold(
+            useSafeArea: true,
+            body: LoadingState(),
+          );
+        }
 
-    String formatPrice(double price) {
-      return '${price.toStringAsFixed(0).replaceAllMapped(currencyFormat, (Match m) => '${m[1]},')} đ';
-    }
-
-    return AppScaffold(
-      useSafeArea: true,
-      appBar: CustomAppBar(
-        title: 'Xác nhận cọc/quyết toán',
-        showBackButton: true,
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(AppSizes.m),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildHeaderCard(),
-                  AppSizes.spacingL,
-
-                  const SectionTitle(title: 'Thông tin giao dịch'),
-                  AppSizes.spacingM,
-                  _buildTransactionCard(formatPrice),
-                  AppSizes.spacingL,
-
-                  const SectionTitle(title: 'Ảnh chụp biên lai chuyển khoản'),
-                  AppSizes.spacingM,
-                  _buildReceiptImageCard(),
-                  const SizedBox(height: AppSizes.xl),
-                ],
-              ),
+        if (snapshot.hasError || !snapshot.hasData) {
+          return AppScaffold(
+            useSafeArea: true,
+            appBar: const CustomAppBar(
+              title: 'Xac nhan thanh toan',
+              showBackButton: true,
             ),
+            body: ErrorState(
+              message: snapshot.error.toString(),
+            ),
+          );
+        }
+
+        final data = snapshot.data!;
+        final payment = data.payment;
+
+        return AppScaffold(
+          useSafeArea: true,
+          appBar: const CustomAppBar(
+            title: 'Xac nhan coc/quyet toan',
+            showBackButton: true,
           ),
-          if (_payment.status == 'Pending') _buildActionPanel(),
-        ],
-      ),
+          body: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(AppSizes.m),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildHeaderCard(data),
+                      AppSizes.spacingL,
+                      const SectionTitle(title: 'Thong tin giao dich'),
+                      AppSizes.spacingM,
+                      _buildTransactionCard(payment, data),
+                      AppSizes.spacingL,
+                      const SectionTitle(title: 'Payment proof'),
+                      AppSizes.spacingM,
+                      _buildReceiptImageCard(payment, data),
+                      const SizedBox(height: AppSizes.xl),
+                    ],
+                  ),
+                ),
+              ),
+              if (payment != null) _buildActionPanel(data),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildHeaderCard() {
+  Widget _buildHeaderCard(_PaymentScreenData data) {
     return InfoCard(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -143,47 +193,75 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Biên lai: ${_payment.id}',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary),
+                  'Payment: ${data.payment?.paymentId ?? data.paymentId ?? 'Unknown'}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: AppColors.primary,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Khách: ${_payment.customerName} - Đơn: ${_payment.orderCode}',
+                  'Order: ${data.orderId ?? 'Chua xac dinh'}',
                   style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                 ),
               ],
             ),
           ),
-          StatusChip(label: _payment.status),
+          StatusChip(label: data.payment?.status ?? 'No detail'),
         ],
       ),
     );
   }
 
-  Widget _buildTransactionCard(String Function(double) formatPrice) {
+  Widget _buildTransactionCard(
+    ManagerPaymentRecord? payment,
+    _PaymentScreenData data,
+  ) {
+    if (payment == null) {
+      return const ManagerBackendGapCard(
+        title: 'Khong tai duoc payment detail',
+        message:
+            'Neu chi co paymentId ma khong co orderId thi mobile chua doc duoc chi tiet, vi backend chua co GET /payments/:id hoac GET /payment-requests/:id.',
+      );
+    }
+
     return InfoCard(
       child: Column(
         children: [
-          _buildDetailRow('Loại thanh toán', _payment.paymentType),
+          _buildDetailRow('Loai thanh toan', payment.paymentType),
           const Divider(height: 20, color: AppColors.divider),
-          _buildDetailRow('Số tiền yêu cầu', formatPrice(_payment.requiredAmount)),
-          const Divider(height: 20, color: AppColors.divider),
-          _buildDetailRow('Số tiền thực chuyển', formatPrice(_payment.paidAmount), valueColor: AppColors.success),
-          const Divider(height: 20, color: AppColors.divider),
-          _buildDetailRow('Phương thức chuyển', _payment.paymentMethod),
-          const Divider(height: 20, color: AppColors.divider),
-          _buildDetailRow('Người gửi báo cáo', _payment.submittedBy),
+          _buildDetailRow('So tien', '${payment.amount.toStringAsFixed(0)}'),
           const Divider(height: 20, color: AppColors.divider),
           _buildDetailRow(
-            'Thời gian báo cáo',
-            '${_payment.submittedAt.hour}:${_payment.submittedAt.minute.toString().padLeft(2, '0')} - ${_payment.submittedAt.day}/${_payment.submittedAt.month}',
+            'Phuong thuc',
+            payment.paymentMethod.isEmpty ? 'Chua co' : payment.paymentMethod,
+          ),
+          const Divider(height: 20, color: AppColors.divider),
+          _buildDetailRow(
+            'Ngay ghi nhan',
+            payment.paymentDate == null
+                ? 'Chua co'
+                : '${payment.paymentDate!.day}/${payment.paymentDate!.month}/${payment.paymentDate!.year}',
           ),
         ],
       ),
     );
   }
 
-  Widget _buildReceiptImageCard() {
+  Widget _buildReceiptImageCard(
+    ManagerPaymentRecord? payment,
+    _PaymentScreenData data,
+  ) {
+    if (payment == null || payment.evidences.isEmpty) {
+      return const ManagerBackendGapCard(
+        title: 'Chua co proof image de manager review',
+        message:
+            'GET /orders/:id/payments hien chua tra proof image/evidence day du. Backend can bo sung payment detail hoac payment proof endpoint.',
+      );
+    }
+
+    final evidence = payment.evidences.first;
     return InfoCard(
       padding: EdgeInsets.zero,
       child: ClipRRect(
@@ -198,36 +276,25 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.document_scanner_outlined, color: AppColors.primary, size: 48),
-                    const SizedBox(height: 12),
-                    Text(
-                      _payment.evidenceUrl,
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                    const Icon(
+                      Icons.document_scanner_outlined,
+                      color: AppColors.primary,
+                      size: 48,
                     ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'Chạm để xem ảnh đầy đủ phóng to',
-                      style: TextStyle(fontSize: 11, color: AppColors.textLight, fontStyle: FontStyle.italic),
+                    const SizedBox(height: 12),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        evidence.fileUrl,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textSecondary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ],
-                ),
-              ),
-              Positioned(
-                top: 12,
-                right: 12,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.6),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.verified_user, color: AppColors.success, size: 12),
-                      SizedBox(width: 4),
-                      Text('E-RECEIPT MATCH', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
                 ),
               ),
             ],
@@ -237,51 +304,73 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     );
   }
 
-  Widget _buildDetailRow(String label, String value, {Color? valueColor}) {
+  Widget _buildDetailRow(String label, String value) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
         Text(
-          value,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
-            color: valueColor ?? AppColors.textPrimary,
+          label,
+          style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+        ),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: AppColors.textPrimary,
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildActionPanel() {
+  Widget _buildActionPanel(_PaymentScreenData data) {
     return Container(
       padding: const EdgeInsets.all(AppSizes.m),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, -4)),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 10,
+            offset: const Offset(0, -4),
+          ),
         ],
       ),
       child: Row(
         children: [
           Expanded(
             child: SecondaryButton(
-              text: 'Yêu cầu gửi lại ảnh',
+              text: 'Proof chua du',
               icon: Icons.sync_problem_outlined,
-              onPressed: () => _updateStatus('Needs Evidence', 'Đã yêu cầu khách hàng/Leader chụp lại ảnh minh chứng rõ nét hơn.'),
+              onPressed: _showMissingProofApi,
             ),
           ),
           const SizedBox(width: AppSizes.s),
           Expanded(
             child: PrimaryButton(
-              text: 'Xác nhận khớp tiền',
+              text: 'Xac nhan payment',
               icon: Icons.check_circle_outline,
-              onPressed: () => _updateStatus('Approved', 'Biên lai đã được duyệt. Đã ghi nhận số tiền thanh toán!'),
+              onPressed: () => _confirmPayment(data),
             ),
           ),
         ],
       ),
     );
   }
+}
+
+class _PaymentScreenData {
+  const _PaymentScreenData({
+    required this.orderId,
+    required this.paymentId,
+    required this.payment,
+  });
+
+  final String? orderId;
+  final String? paymentId;
+  final ManagerPaymentRecord? payment;
 }

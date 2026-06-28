@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
+
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
+import '../../../core/routes/app_routes.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/custom_app_bar.dart';
+import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/info_card.dart';
-import '../../../core/widgets/section_title.dart';
-import '../../../core/widgets/status_chip.dart';
+import '../../../core/widgets/loading_state.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../../../core/widgets/secondary_button.dart';
-import '../../../core/routes/app_routes.dart';
+import '../../../core/widgets/section_title.dart';
+import '../../../core/widgets/status_chip.dart';
+import '../../manager/models/manager_mobile_models.dart';
 import '../../manager/models/manager_route_args.dart';
-import '../../../shared/mock/mock_data.dart';
-import '../../../shared/models/order_status.dart';
-import '../../../shared/models/core_models.dart';
+import '../../manager/services/manager_mobile_service.dart';
+import '../../manager/widgets/manager_backend_gap_card.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   const OrderDetailScreen({super.key});
@@ -22,104 +25,150 @@ class OrderDetailScreen extends StatefulWidget {
 }
 
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
-  late MobileOrder _order;
-  String _orderId = 'ORD-2026-001';
+  late Future<_OrderDetailData> _future;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final args = ModalRoute.of(context)?.settings.arguments;
-    if (args is ManagerOrderRouteArgs) {
-      _orderId = args.orderId;
-    } else if (args is String) {
-      _orderId = args;
-    }
-    _loadOrderData();
+    _future = _loadData(_resolveOrderId());
   }
 
-  void _loadOrderData() {
-    _order = MockData.orders.firstWhere(
-      (o) => o.id == _orderId,
-      orElse: () => MockData.orders.first,
+  String _resolveOrderId() {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is ManagerOrderRouteArgs) {
+      return args.orderId;
+    }
+    if (args is String) {
+      return args;
+    }
+    return '';
+  }
+
+  Future<_OrderDetailData> _loadData(String orderId) async {
+    if (orderId.isEmpty) {
+      throw Exception('Khong tim thay orderId de tai chi tiet don hang.');
+    }
+
+    final order = await ManagerMobileService.getOrderDetail(orderId);
+    final payments = await ManagerMobileService.getPaymentsByOrder(orderId);
+
+    ManagerVerificationSummary? verification;
+    try {
+      verification = await ManagerMobileService.getVerificationSummary(orderId);
+    } catch (_) {
+      verification = null;
+    }
+
+    ManagerTaskSummary? surveyTask;
+    try {
+      surveyTask = await ManagerMobileService.getSurveyTaskByOrder(orderId);
+    } catch (_) {
+      surveyTask = null;
+    }
+
+    ManagerSurveyReport? surveyReport;
+    if (surveyTask != null) {
+      try {
+        surveyReport = await ManagerMobileService.getSurveyReport(surveyTask.workTaskId);
+      } catch (_) {
+        surveyReport = null;
+      }
+    }
+
+    final evidenceBundle = await ManagerMobileService.getEvidenceBundle(
+      orderId: orderId,
+      surveyTaskId: surveyTask?.workTaskId,
+    );
+
+    return _OrderDetailData(
+      order: order,
+      payments: payments,
+      verification: verification,
+      surveyTask: surveyTask,
+      surveyReport: surveyReport,
+      evidenceBundle: evidenceBundle,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final isManager = ModalRoute.of(context)?.settings.name?.contains('manager') ?? false;
+    final isManager =
+        ModalRoute.of(context)?.settings.name?.contains('manager') ?? false;
 
-    final relatedEvidence = MockData.evidenceItems
-        .where((item) => item.orderCode == _order.id)
-        .toList();
+    return FutureBuilder<_OrderDetailData>(
+      future: _future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const AppScaffold(
+            useSafeArea: true,
+            body: LoadingState(),
+          );
+        }
 
-    final hasPendingSurvey = MockData.surveyReports.any(
-      (r) => r.orderCode == _order.id && r.approvalStatus == 'Pending',
-    );
-    final hasPendingChange = MockData.changeRequests.any(
-      (cr) => cr.orderCode == _order.id && cr.approvalStatus == 'Pending',
-    );
-    final pendingPayment = MockData.paymentConfirmations.cast<dynamic>().firstWhere(
-      (p) => p.orderCode == _order.id && p.status == 'Pending',
-      orElse: () => null,
-    );
-
-    return AppScaffold(
-      useSafeArea: true,
-      appBar: CustomAppBar(
-        title: 'Chi tiết ${_order.id}',
-        showBackButton: true,
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(AppSizes.m),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildHeaderCard(),
-                  AppSizes.spacingL,
-
-                  // Important action notifications (only visible for Manager or if action is pending)
-                  if (isManager && (hasPendingSurvey || hasPendingChange || pendingPayment != null)) ...[
-                    _buildUrgentActionBanner(
-                      hasPendingSurvey: hasPendingSurvey,
-                      hasPendingChange: hasPendingChange,
-                      hasPendingPayment: pendingPayment != null,
-                    ),
-                    AppSizes.spacingL,
-                  ],
-
-                  const SectionTitle(title: 'Thông tin khách hàng'),
-                  AppSizes.spacingM,
-                  _buildCustomerCard(),
-                  AppSizes.spacingL,
-
-                  const SectionTitle(title: 'Tổng chi phí & Thanh toán'),
-                  AppSizes.spacingM,
-                  _buildPaymentSummaryCard(),
-                  AppSizes.spacingL,
-
-                  const SectionTitle(title: 'Vận hành & Tiến độ hiện trường'),
-                  AppSizes.spacingM,
-                  _buildOperationsCard(isManager),
-                  AppSizes.spacingL,
-
-                  const SectionTitle(title: 'Minh chứng hiện trường mới nhất'),
-                  AppSizes.spacingM,
-                  _buildEvidencePreview(relatedEvidence),
-                  const SizedBox(height: AppSizes.xxl),
-                ],
-              ),
+        if (snapshot.hasError || !snapshot.hasData) {
+          return AppScaffold(
+            useSafeArea: true,
+            appBar: const CustomAppBar(
+              title: 'Chi tiet don hang',
+              showBackButton: true,
             ),
+            body: ErrorState(
+              message: snapshot.error.toString(),
+            ),
+          );
+        }
+
+        final data = snapshot.data!;
+
+        return AppScaffold(
+          useSafeArea: true,
+          appBar: CustomAppBar(
+            title: 'Chi tiet ${data.order.orderNumber}',
+            showBackButton: true,
           ),
-          if (isManager) _buildActionPanel(pendingPayment != null),
-        ],
-      ),
+          body: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(AppSizes.m),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildHeaderCard(data.order),
+                      AppSizes.spacingL,
+                      if (isManager) ...[
+                        _buildActionBanner(data),
+                        AppSizes.spacingL,
+                      ],
+                      const SectionTitle(title: 'Thong tin khach hang'),
+                      AppSizes.spacingM,
+                      _buildCustomerCard(data.order),
+                      AppSizes.spacingL,
+                      const SectionTitle(title: 'Thanh toan'),
+                      AppSizes.spacingM,
+                      _buildPaymentSummaryCard(data.payments),
+                      AppSizes.spacingL,
+                      const SectionTitle(title: 'Van hanh va tien do'),
+                      AppSizes.spacingM,
+                      _buildOperationsCard(context, isManager, data),
+                      AppSizes.spacingL,
+                      const SectionTitle(title: 'Minh chung moi nhat'),
+                      AppSizes.spacingM,
+                      _buildEvidencePreview(data.evidenceBundle),
+                      const SizedBox(height: AppSizes.xxl),
+                    ],
+                  ),
+                ),
+              ),
+              if (isManager) _buildActionPanel(data),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildHeaderCard() {
+  Widget _buildHeaderCard(ManagerOrderDetail order) {
     return InfoCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,25 +177,32 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'MÃ ĐƠN: ${_order.id}',
+                'MA DON: ${order.orderNumber}',
                 style: const TextStyle(
                   color: AppColors.primary,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              StatusChip(label: _order.orderStatus.displayName),
+              StatusChip(label: order.status),
             ],
           ),
           const SizedBox(height: AppSizes.s),
           Row(
             children: [
-              const Icon(Icons.location_on_rounded, color: AppColors.textSecondary, size: 16),
+              const Icon(
+                Icons.location_on_rounded,
+                color: AppColors.textSecondary,
+                size: 16,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  _order.location,
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                  order.venueAddress ?? 'Chua co dia diem',
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                  ),
                 ),
               ),
             ],
@@ -154,62 +210,32 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.calendar_today_rounded, color: AppColors.textSecondary, size: 14),
+              const Icon(
+                Icons.calendar_today_rounded,
+                color: AppColors.textSecondary,
+                size: 14,
+              ),
               const SizedBox(width: 8),
               Text(
-                'Ngày tổ chức: ${_order.eventDateTime.day}/${_order.eventDateTime.month}/${_order.eventDateTime.year}',
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                order.eventStartDate == null
+                    ? 'Ngay to chuc: chua co'
+                    : 'Ngay to chuc: ${order.eventStartDate!.day}/${order.eventStartDate!.month}/${order.eventStartDate!.year}',
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.person_outline_rounded, color: AppColors.textSecondary, size: 16),
-              const SizedBox(width: 8),
-              Text(
-                'Phụ trách hiện trường: ${_order.leaderStaffName}',
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          if (_order.urgencyMessage != null) ...[
-            const Divider(height: 24, color: AppColors.divider),
-            Container(
-              padding: const EdgeInsets.all(AppSizes.s),
-              decoration: BoxDecoration(
-                color: AppColors.errorLight.withOpacity(0.5),
-                borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-                border: Border.all(color: AppColors.error.withOpacity(0.2)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 18),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      _order.urgencyMessage!,
-                      style: const TextStyle(
-                        color: AppColors.error,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
         ],
       ),
     );
   }
 
-  Widget _buildUrgentActionBanner({
-    required bool hasPendingSurvey,
-    required bool hasPendingChange,
-    required bool hasPendingPayment,
-  }) {
+  Widget _buildActionBanner(_OrderDetailData data) {
+    final hasSurvey = data.surveyTask != null;
+    final hasPayments = data.payments.isNotEmpty;
+
     return Container(
       padding: const EdgeInsets.all(AppSizes.m),
       decoration: BoxDecoration(
@@ -225,7 +251,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               Icon(Icons.gpp_maybe_rounded, color: AppColors.warning, size: 20),
               SizedBox(width: 8),
               Text(
-                'Yêu cầu cần phê duyệt',
+                'Tac vu co the xu ly',
                 style: TextStyle(
                   color: AppColors.warning,
                   fontWeight: FontWeight.bold,
@@ -235,34 +261,66 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          if (hasPendingSurvey)
+          if (hasSurvey)
             _buildActionBannerItem(
-              title: 'Báo cáo khảo sát thực địa chờ duyệt',
-              onTap: () => Navigator.pushNamed(context, AppRoutes.managerSurveyReview, arguments: _order.id),
+              title: 'Xem bao cao khao sat that tu task survey',
+              onTap: () => Navigator.pushNamed(
+                context,
+                AppRoutes.managerSurveyReview,
+                arguments: ManagerSurveyRouteArgs(
+                  taskId: data.surveyTask!.workTaskId,
+                  orderId: data.order.orderId,
+                ),
+              ),
             ),
-          if (hasPendingChange)
+          _buildActionBannerItem(
+            title: 'Xem tien do field task',
+            onTap: () => Navigator.pushNamed(
+              context,
+              AppRoutes.managerFieldProgress,
+              arguments: ManagerOrderRouteArgs(orderId: data.order.orderId),
+            ),
+          ),
+          if (hasPayments)
             _buildActionBannerItem(
-              title: 'Yêu cầu đổi thiết bị/vật tư phát sinh',
-              onTap: () => Navigator.pushNamed(context, AppRoutes.managerChangeRequestApproval, arguments: _order.id),
+              title: 'Mo man hinh xac nhan thanh toan',
+              onTap: () => Navigator.pushNamed(
+                context,
+                AppRoutes.managerPaymentConfirmation,
+                arguments: ManagerPaymentRouteArgs(orderId: data.order.orderId),
+              ),
             ),
-          if (hasPendingPayment)
-            _buildActionBannerItem(
-              title: 'Biên lai chuyển khoản cọc/thanh toán cần xác nhận',
-              onTap: () => Navigator.pushNamed(context, AppRoutes.managerPaymentConfirmation, arguments: _order.id),
+          _buildActionBannerItem(
+            title: 'Mo yeu cau phat sinh (co the thieu chi tiet do API backend)',
+            onTap: () => Navigator.pushNamed(
+              context,
+              AppRoutes.managerChangeRequestApproval,
+              arguments: ManagerChangeRequestRouteArgs(
+                changeRequestId: '',
+                orderId: data.order.orderId,
+              ),
             ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildActionBannerItem({required String title, required VoidCallback onTap}) {
+  Widget _buildActionBannerItem({
+    required String title,
+    required VoidCallback onTap,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(top: 6),
       child: InkWell(
         onTap: onTap,
         child: Row(
           children: [
-            const Icon(Icons.arrow_right_rounded, color: AppColors.textPrimary, size: 18),
+            const Icon(
+              Icons.arrow_right_rounded,
+              color: AppColors.textPrimary,
+              size: 18,
+            ),
             Expanded(
               child: Text(
                 title,
@@ -274,55 +332,99 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 ),
               ),
             ),
-            const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textSecondary, size: 10),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: AppColors.textSecondary,
+              size: 10,
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCustomerCard() {
+  Widget _buildCustomerCard(ManagerOrderDetail order) {
+    final customer = order.customer;
     return InfoCard(
       child: Column(
         children: [
-          _buildDetailRow('Họ và tên', _order.customerName, Icons.person_outline_rounded),
-          const Divider(height: 20, color: AppColors.divider),
-          _buildDetailRow('Số điện thoại', _order.customerPhone, Icons.phone_android_rounded),
-          const Divider(height: 20, color: AppColors.divider),
-          _buildDetailRow('Địa chỉ Email', 'khachhang@gmail.com', Icons.mail_outline_rounded),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPaymentSummaryCard() {
-    return InfoCard(
-      child: Column(
-        children: [
-          _buildFinanceRow('Tổng giá trị hợp đồng', _order.totalAmount, isBold: true),
-          const SizedBox(height: 8),
-          _buildFinanceRow('Khách đã thanh toán', _order.paidAmount, valueColor: AppColors.success),
-          const Divider(height: 24, color: AppColors.divider),
-          _buildFinanceRow(
-            'Còn lại cần thu',
-            _order.balanceDue,
-            isBold: true,
-            valueColor: _order.balanceDue > 0 ? AppColors.warning : AppColors.success,
+          _buildDetailRow(
+            'Ho va ten',
+            customer?.fullName ?? 'Chua co du lieu',
+            Icons.person_outline_rounded,
           ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Trạng thái thanh toán', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-              StatusChip(label: _order.paymentStatus.name.toUpperCase()),
-            ],
+          const Divider(height: 20, color: AppColors.divider),
+          _buildDetailRow(
+            'So dien thoai',
+            customer?.phone ?? 'Chua co du lieu',
+            Icons.phone_android_rounded,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildOperationsCard(bool isManager) {
+  Widget _buildPaymentSummaryCard(List<ManagerPaymentRecord> payments) {
+    final totalPaid = payments.fold<double>(0, (sum, item) => sum + item.amount);
+
+    return InfoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'So giao dich: ${payments.length}',
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Tong da ghi nhan: ${_formatCurrency(totalPaid)}',
+            style: const TextStyle(
+              color: AppColors.success,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (payments.isEmpty)
+            const ManagerBackendGapCard(
+              title: 'Chua co payment record',
+              message:
+                  'GET /orders/:id/payments khong tra du lieu hoac order nay chua co payment duoc confirm.',
+            )
+          else
+            ...payments.take(3).map(
+              (payment) => Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${payment.paymentType} - ${payment.paymentMethod.isEmpty ? 'Unknown method' : payment.paymentMethod}',
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    StatusChip(label: payment.status),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOperationsCard(
+    BuildContext context,
+    bool isManager,
+    _OrderDetailData data,
+  ) {
     return InfoCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -330,16 +432,26 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Khảo sát hiện trường', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-              StatusChip(label: _order.surveyStatus),
+              const Text(
+                'Survey report',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+              StatusChip(
+                label: data.surveyReport == null ? 'Chua co' : 'Da nop',
+              ),
             ],
           ),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Trạng thái thi công', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-              StatusChip(label: _order.fieldProgressStatus),
+              const Text(
+                'Verification',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+              StatusChip(
+                label: data.verification?.verificationStatus ?? 'Chua san sang',
+              ),
             ],
           ),
           const Divider(height: 24, color: AppColors.divider),
@@ -348,7 +460,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               Navigator.pushNamed(
                 context,
                 isManager ? AppRoutes.managerFieldProgress : AppRoutes.fieldProgress,
-                arguments: _order.id,
+                arguments: ManagerOrderRouteArgs(orderId: data.order.orderId),
               );
             },
             child: const Padding(
@@ -361,7 +473,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       Icon(Icons.timeline_rounded, color: AppColors.primary, size: 20),
                       SizedBox(width: 8),
                       Text(
-                        'Xem tiến trình chi tiết (Timeline)',
+                        'Xem tien trinh chi tiet',
                         style: TextStyle(
                           color: AppColors.primary,
                           fontWeight: FontWeight.bold,
@@ -370,7 +482,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       ),
                     ],
                   ),
-                  Icon(Icons.arrow_forward_ios_rounded, color: AppColors.primary, size: 14),
+                  Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    color: AppColors.primary,
+                    size: 14,
+                  ),
                 ],
               ),
             ),
@@ -380,81 +496,79 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
-  Widget _buildEvidencePreview(List<EvidenceItem> items) {
+  Widget _buildEvidencePreview(ManagerEvidenceBundle bundle) {
+    final items = [
+      ...bundle.surveyEvidences,
+      ...bundle.paymentEvidences,
+    ];
+
     if (items.isEmpty) {
-      return const InfoCard(
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 16.0),
-          child: Center(
-            child: Text(
-              'Chưa có ảnh minh chứng được gửi lên.',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-            ),
-          ),
-        ),
+      return const ManagerBackendGapCard(
+        title: 'Chua co evidence tong hop',
+        message:
+            'Man nay dang ghep survey evidences va payment evidences. Backend chua co endpoint tong hop evidences theo order.',
       );
     }
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: items.length > 4 ? 4 : items.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: AppSizes.s,
-        mainAxisSpacing: AppSizes.s,
-        childAspectRatio: 1.5,
-      ),
-      itemBuilder: (context, index) {
-        final item = items[index];
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-          child: Container(
-            color: AppColors.primaryLight,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                _buildMockImage(item.imageUrl),
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    color: Colors.black.withOpacity(0.6),
-                    padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                    child: Text(
-                      item.title,
-                      style: const TextStyle(color: Colors.white, fontSize: 10),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+    return Column(
+      children: [
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: items.length > 4 ? 4 : items.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: AppSizes.s,
+            mainAxisSpacing: AppSizes.s,
+            childAspectRatio: 1.5,
           ),
-        );
-      },
-    );
-  }
-
-  Widget _buildMockImage(String imageName) {
-    return Container(
-      color: AppColors.primaryLight.withOpacity(0.6),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.image_outlined, color: AppColors.primary, size: 20),
-            const SizedBox(height: 2),
-            Text(
-              imageName,
-              style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-          ],
+          itemBuilder: (context, index) {
+            final item = items[index];
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+              child: Container(
+                color: AppColors.primaryLight,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    const Center(
+                      child: Icon(
+                        Icons.image_outlined,
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        color: Colors.black.withOpacity(0.6),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 4,
+                          horizontal: 8,
+                        ),
+                        child: Text(
+                          item.fileUrl,
+                          style: const TextStyle(color: Colors.white, fontSize: 10),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
-      ),
+        const SizedBox(height: AppSizes.m),
+        const ManagerBackendGapCard(
+          title: 'Evidence van chua day du',
+          message:
+              'Handover, damage/loss, warehouse return va settlement evidence chua co API tong hop cho Manager mobile.',
+        ),
+      ],
     );
   }
 
@@ -467,137 +581,98 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 11,
+                ),
+              ),
               const SizedBox(height: 2),
-              Text(value, style: const TextStyle(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.bold)),
+              Text(
+                value,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
-        )
-      ],
-    );
-  }
-
-  Widget _buildFinanceRow(String label, double val, {bool isBold = false, Color? valueColor}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: isBold ? AppColors.textPrimary : AppColors.textSecondary,
-            fontSize: isBold ? 14 : 13,
-            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-        Text(
-          '${val.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')} đ',
-          style: TextStyle(
-            color: valueColor ?? AppColors.textPrimary,
-            fontSize: isBold ? 15 : 13,
-            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-          ),
         ),
       ],
     );
   }
 
-  Widget _buildActionPanel(bool hasPendingPayment) {
-    List<Widget> buttons = [];
-
-    if (_order.orderStatus == OrderStatus.pendingDeposit) {
-      buttons.add(
-        Expanded(
-          child: PrimaryButton(
-            text: 'Duyệt đặt cọc sự kiện',
-            icon: Icons.check_circle_outline,
-            onPressed: () {
-              Navigator.pushNamed(context, AppRoutes.managerPaymentConfirmation, arguments: _order.id);
-            },
-          ),
-        ),
-      );
-    } else if (_order.orderStatus == OrderStatus.deposited) {
-      buttons.add(
-        Expanded(
-          child: PrimaryButton(
-            text: 'Kích hoạt thi công',
-            icon: Icons.play_arrow_rounded,
-            onPressed: () {
-              setState(() {
-                final idx = MockData.orders.indexWhere((o) => o.id == _order.id);
-                if (idx != -1) {
-                  MockData.orders[idx] = _order.copyWith(
-                    orderStatus: OrderStatus.executing,
-                    fieldProgressStatus: 'Installation',
-                  );
-                  _loadOrderData();
-                }
-              });
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Sự kiện đã bắt đầu thi công lắp đặt!')),
-              );
-            },
-          ),
-        ),
-      );
-    } else if (_order.orderStatus == OrderStatus.executing) {
-      buttons.add(
-        Expanded(
-          child: PrimaryButton(
-            text: 'Duyệt Change Request',
-            icon: Icons.published_with_changes_rounded,
-            onPressed: () {
-              Navigator.pushNamed(context, AppRoutes.managerChangeRequestApproval, arguments: _order.id);
-            },
-          ),
-        ),
-      );
-      buttons.add(const SizedBox(width: AppSizes.s));
-      buttons.add(
-        Expanded(
-          child: SecondaryButton(
-            text: 'Quyết toán',
-            icon: Icons.account_balance_wallet_outlined,
-            onPressed: () {
-              Navigator.pushNamed(context, AppRoutes.managerPaymentConfirmation, arguments: _order.id);
-            },
-          ),
-        ),
-      );
-    } else if (_order.orderStatus == OrderStatus.handedOver) {
-      buttons.add(
-        Expanded(
-          child: PrimaryButton(
-            text: 'Xác nhận quyết toán',
-            icon: Icons.check_circle_outline,
-            onPressed: () {
-              Navigator.pushNamed(context, AppRoutes.managerPaymentConfirmation, arguments: _order.id);
-            },
-          ),
-        ),
-      );
-    } else {
-      buttons.add(
-        const Expanded(
-          child: Center(
-            child: Text(
-              'Đơn hàng đã hoàn tất vận hành.',
-              style: TextStyle(color: AppColors.textSecondary, fontStyle: FontStyle.italic, fontSize: 13),
-            ),
-          ),
-        ),
-      );
-    }
-
+  Widget _buildActionPanel(_OrderDetailData data) {
     return Container(
       padding: const EdgeInsets.all(AppSizes.m),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, -4)),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 10,
+            offset: const Offset(0, -4),
+          ),
         ],
       ),
-      child: Row(children: buttons),
+      child: Row(
+        children: [
+          Expanded(
+            child: PrimaryButton(
+              text: 'Thanh toan',
+              icon: Icons.payments_outlined,
+              onPressed: () {
+                Navigator.pushNamed(
+                  context,
+                  AppRoutes.managerPaymentConfirmation,
+                  arguments: ManagerPaymentRouteArgs(orderId: data.order.orderId),
+                );
+              },
+            ),
+          ),
+          const SizedBox(width: AppSizes.s),
+          Expanded(
+            child: SecondaryButton(
+              text: 'Phat sinh',
+              icon: Icons.published_with_changes_rounded,
+              onPressed: () {
+                Navigator.pushNamed(
+                  context,
+                  AppRoutes.managerChangeRequestApproval,
+                  arguments: ManagerChangeRequestRouteArgs(
+                    changeRequestId: '',
+                    orderId: data.order.orderId,
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
+}
+
+class _OrderDetailData {
+  const _OrderDetailData({
+    required this.order,
+    required this.payments,
+    required this.verification,
+    required this.surveyTask,
+    required this.surveyReport,
+    required this.evidenceBundle,
+  });
+
+  final ManagerOrderDetail order;
+  final List<ManagerPaymentRecord> payments;
+  final ManagerVerificationSummary? verification;
+  final ManagerTaskSummary? surveyTask;
+  final ManagerSurveyReport? surveyReport;
+  final ManagerEvidenceBundle evidenceBundle;
+}
+
+String _formatCurrency(double amount) {
+  return '${amount.toStringAsFixed(0)} d';
 }

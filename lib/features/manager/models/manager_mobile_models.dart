@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class ManagerDashboardSummary {
   const ManagerDashboardSummary({
     required this.ordersInProgress,
@@ -49,15 +51,21 @@ class ManagerNotificationItem {
     required this.notificationId,
     required this.title,
     required this.content,
+    required this.type,
     required this.isRead,
     required this.createdAt,
+    this.refType,
+    this.refId,
   });
 
   final String notificationId;
   final String title;
   final String content;
+  final String type;
   final bool isRead;
   final DateTime? createdAt;
+  final String? refType;
+  final String? refId;
 
   factory ManagerNotificationItem.fromJson(Map<String, dynamic> json) {
     return ManagerNotificationItem(
@@ -67,8 +75,11 @@ class ManagerNotificationItem {
           '',
       title: (json['title'] ?? '').toString(),
       content: (json['content'] ?? json['message'] ?? '').toString(),
+      type: (json['type'] ?? '').toString(),
       isRead: json['isRead'] == true,
       createdAt: _toDateTime(json['createdAt']),
+      refType: _toNullableString(json['refType']),
+      refId: _toNullableString(json['refId']),
     );
   }
 }
@@ -95,9 +106,11 @@ class ManagerOrderSummary {
   final DateTime? lastUpdate;
 
   factory ManagerOrderSummary.fromJson(Map<String, dynamic> json) {
+    final orderId = _toNullableString(json['orderId'] ?? json['id']) ?? '';
     return ManagerOrderSummary(
-      orderId: _toNullableString(json['orderId'] ?? json['id']) ?? '',
-      orderNumber: (json['orderNumber'] ?? json['orderCode'] ?? '').toString(),
+      orderId: orderId,
+      orderNumber:
+          (json['orderNumber'] ?? json['orderCode'] ?? orderId).toString(),
       status: (json['status'] ?? '').toString(),
       customerId: _toNullableString(json['customerId']),
       eventStartDate: _toDateTime(json['eventStartDate'] ?? json['eventDate']),
@@ -150,9 +163,11 @@ class ManagerOrderDetail {
 
   factory ManagerOrderDetail.fromJson(Map<String, dynamic> json) {
     final customerJson = json['customer'];
+    final orderId = _toNullableString(json['orderId'] ?? json['id']) ?? '';
     return ManagerOrderDetail(
-      orderId: _toNullableString(json['orderId'] ?? json['id']) ?? '',
-      orderNumber: (json['orderNumber'] ?? json['orderCode'] ?? '').toString(),
+      orderId: orderId,
+      orderNumber:
+          (json['orderNumber'] ?? json['orderCode'] ?? orderId).toString(),
       status: (json['status'] ?? '').toString(),
       customerId: _toNullableString(json['customerId']),
       eventStartDate: _toDateTime(json['eventStartDate'] ?? json['eventDate']),
@@ -186,14 +201,20 @@ class ManagerTaskSummary {
   final String? location;
 
   factory ManagerTaskSummary.fromJson(Map<String, dynamic> json) {
+    final decodedDescription = _decodeDescription(json['description']);
     return ManagerTaskSummary(
       workTaskId: _toNullableString(json['workTaskId'] ?? json['id']) ?? '',
       orderId: _toNullableString(json['orderId']) ?? '',
-      taskType: (json['taskType'] ?? '').toString(),
+      taskType: (json['taskType'] ?? json['taskCategory'] ?? json['title'] ?? '')
+          .toString(),
       status: (json['status'] ?? '').toString(),
-      scheduledStart: _toDateTime(json['scheduledStart']),
-      scheduledEnd: _toDateTime(json['scheduledEnd']),
-      location: _toNullableString(json['location']),
+      scheduledStart: _toDateTime(
+        json['scheduledStart'] ?? decodedDescription['scheduledStart'],
+      ),
+      scheduledEnd: _toDateTime(
+        json['scheduledEnd'] ?? decodedDescription['scheduledEnd'],
+      ),
+      location: _toNullableString(json['location'] ?? decodedDescription['location']),
     );
   }
 }
@@ -214,7 +235,9 @@ class ManagerSurveyReport {
   factory ManagerSurveyReport.fromJson(Map<String, dynamic> json) {
     final evidenceJson = json['evidences'] as List<dynamic>? ?? const [];
     return ManagerSurveyReport(
-      workTaskId: _toNullableString(json['workTaskId']) ?? '',
+      workTaskId:
+          _toNullableString(json['workTaskId'] ?? json['taskId'] ?? json['id']) ??
+          '',
       notes: (json['notes'] ?? '').toString(),
       evidences: evidenceJson
           .map((item) => ManagerEvidenceAsset.fromJson(item as Map<String, dynamic>))
@@ -246,12 +269,15 @@ class ManagerPaymentRecord {
   factory ManagerPaymentRecord.fromJson(Map<String, dynamic> json) {
     final evidenceJson = json['evidences'] as List<dynamic>? ?? const [];
     return ManagerPaymentRecord(
-      paymentId: _toNullableString(json['paymentId'] ?? json['id']) ?? '',
+      paymentId: _toNullableString(
+            json['paymentId'] ?? json['paymentRequestId'] ?? json['id'],
+          ) ??
+          '',
       amount: _toDouble(json['amount']),
-      paymentType: (json['paymentType'] ?? '').toString(),
-      paymentMethod: (json['paymentMethod'] ?? '').toString(),
+      paymentType: (json['paymentType'] ?? 'Payment').toString(),
+      paymentMethod: (json['paymentMethod'] ?? json['method'] ?? '').toString(),
       status: (json['status'] ?? '').toString(),
-      paymentDate: _toDateTime(json['paymentDate']),
+      paymentDate: _toDateTime(json['paymentDate'] ?? json['paidAt']),
       evidences: evidenceJson
           .map((item) => ManagerEvidenceAsset.fromJson(item as Map<String, dynamic>))
           .toList(),
@@ -355,4 +381,19 @@ DateTime? _toDateTime(dynamic value) {
     return null;
   }
   return DateTime.tryParse(value.toString());
+}
+
+Map<String, dynamic> _decodeDescription(dynamic value) {
+  if (value is! String || value.isEmpty) {
+    return const {};
+  }
+
+  try {
+    final decoded = jsonDecode(value);
+    if (decoded is Map<String, dynamic>) {
+      return decoded;
+    }
+  } catch (_) {}
+
+  return const {};
 }

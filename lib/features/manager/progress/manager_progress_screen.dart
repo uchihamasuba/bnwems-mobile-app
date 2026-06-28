@@ -5,112 +5,153 @@ import '../../../core/constants/app_sizes.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/info_card.dart';
+import '../../../core/widgets/loading_state.dart';
 import '../../../core/widgets/status_chip.dart';
-import '../../../shared/mock/mock_data.dart';
-import '../../../shared/models/core_models.dart';
+import '../models/manager_mobile_models.dart';
+import '../models/manager_route_args.dart';
+import '../services/manager_mobile_service.dart';
 import '../widgets/manager_app_header.dart';
+import '../widgets/manager_backend_gap_card.dart';
 import '../widgets/manager_section_header.dart';
 
-class ManagerProgressScreen extends StatelessWidget {
+class ManagerProgressScreen extends StatefulWidget {
   const ManagerProgressScreen({super.key});
 
-  static const List<String> _steps = [
-    'Check-out',
-    'Transportation',
-    'Installation',
-    'Handover',
-    'Collection',
-    'Warehouse Return',
-    'Completed',
-  ];
+  @override
+  State<ManagerProgressScreen> createState() => _ManagerProgressScreenState();
+}
+
+class _ManagerProgressScreenState extends State<ManagerProgressScreen> {
+  late Future<List<ManagerOrderSummary>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = ManagerMobileService.getFieldProgressFeed();
+  }
+
+  void _reload() {
+    setState(() {
+      _future = ManagerMobileService.getFieldProgressFeed();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final orders = MockData.orders;
-    final activeCount = orders
-        .where((o) => o.fieldProgressStatus != 'Completed')
-        .length;
-    final delayedCount = orders.where((o) => o.hasEmergency).length;
-    final doneCount = orders
-        .where((o) => o.fieldProgressStatus == 'Completed')
-        .length;
+    return FutureBuilder<List<ManagerOrderSummary>>(
+      future: _future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const AppScaffold(
+            useSafeArea: true,
+            body: LoadingState(),
+          );
+        }
 
-    return AppScaffold(
-      useSafeArea: true,
-      body: ListView(
-        padding: const EdgeInsets.all(AppSizes.m),
-        children: [
-          ManagerAppHeader(
-            title: 'Tiến độ hiện trường',
-            subtitle:
-                'Theo dõi các bước vận hành, phát hiện điểm nghẽn và xử lý nhanh khi cần.',
-            trailing: Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.14),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: IconButton(
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.timeline_rounded,
-                  color: Colors.white,
+        if (snapshot.hasError || !snapshot.hasData) {
+          return AppScaffold(
+            useSafeArea: true,
+            body: ErrorState(
+              message: snapshot.error.toString(),
+              onRetry: _reload,
+            ),
+          );
+        }
+
+        final orders = snapshot.data!;
+        final activeCount = orders.where((o) => o.status.isNotEmpty).length;
+        final withTaskCount =
+            orders.where((o) => o.currentTask != null && o.currentTask!.isNotEmpty).length;
+
+        return AppScaffold(
+          useSafeArea: true,
+          body: RefreshIndicator(
+            onRefresh: () async => _reload(),
+            child: ListView(
+              padding: const EdgeInsets.all(AppSizes.m),
+              children: [
+                ManagerAppHeader(
+                  title: 'Tien do hien truong',
+                  subtitle:
+                      'Theo doi feed GET /orders/field-progress va di vao man timeline chi tiet.',
+                  trailing: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.14),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: IconButton(
+                      onPressed: _reload,
+                      icon: const Icon(
+                        Icons.refresh_rounded,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(height: AppSizes.l),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _KpiCard(
+                        label: 'Co feed',
+                        value: '$activeCount',
+                        color: AppColors.info,
+                      ),
+                    ),
+                    const SizedBox(width: AppSizes.s),
+                    Expanded(
+                      child: _KpiCard(
+                        label: 'Co current task',
+                        value: '$withTaskCount',
+                        color: AppColors.warning,
+                      ),
+                    ),
+                    const SizedBox(width: AppSizes.s),
+                    Expanded(
+                      child: _KpiCard(
+                        label: 'Tong don',
+                        value: '${orders.length}',
+                        color: AppColors.success,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSizes.l),
+                const ManagerSectionHeader(
+                  title: 'Danh sach dang theo doi',
+                  subtitle: 'Du lieu hien tai la feed tong hop, backend chua co full workflow timeline theo order.',
+                ),
+                const SizedBox(height: AppSizes.m),
+                if (orders.isEmpty)
+                  const SizedBox(
+                    height: 260,
+                    child: EmptyState(
+                      title: 'Chua co tien do hien truong',
+                      description: 'Backend khong tra ve don nao trong feed field-progress.',
+                      icon: Icons.timeline_rounded,
+                    ),
+                  )
+                else ...[
+                  const ManagerBackendGapCard(
+                    title: 'Field-progress con han che',
+                    message:
+                        'Endpoint hien tai chi tra currentTask, status va lastUpdate. Man chi tiet se dung task list de gia lap timeline tu du lieu that.',
+                  ),
+                  const SizedBox(height: AppSizes.m),
+                  ...orders.map(
+                    (order) => Padding(
+                      padding: const EdgeInsets.only(bottom: AppSizes.m),
+                      child: _ProgressCard(order: order),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
-          const SizedBox(height: AppSizes.l),
-          Row(
-            children: [
-              Expanded(
-                child: _KpiCard(
-                  label: 'Đang thi công',
-                  value: '$activeCount',
-                  color: AppColors.info,
-                ),
-              ),
-              const SizedBox(width: AppSizes.s),
-              Expanded(
-                child: _KpiCard(
-                  label: 'Trễ tiến độ',
-                  value: '$delayedCount',
-                  color: AppColors.error,
-                ),
-              ),
-              const SizedBox(width: AppSizes.s),
-              Expanded(
-                child: _KpiCard(
-                  label: 'Hoàn thành',
-                  value: '$doneCount',
-                  color: AppColors.success,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSizes.l),
-          const ManagerSectionHeader(
-            title: 'Danh sách đang theo dõi',
-            subtitle: 'Mỗi đơn hàng hiển thị bước hiện tại và mức độ rủi ro.',
-          ),
-          const SizedBox(height: AppSizes.m),
-          if (orders.isEmpty)
-            const SizedBox(
-              height: 260,
-              child: EmptyState(
-                title: 'Chưa có tiến độ hiện trường',
-                description: 'Khi có đơn hàng vận hành, bạn sẽ thấy timeline tại đây.',
-                icon: Icons.timeline_rounded,
-              ),
-            )
-          else
-            ...orders.map(
-              (order) => Padding(
-                padding: const EdgeInsets.only(bottom: AppSizes.m),
-                child: _ProgressCard(order: order),
-              ),
-            ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -160,21 +201,18 @@ class _KpiCard extends StatelessWidget {
 class _ProgressCard extends StatelessWidget {
   const _ProgressCard({required this.order});
 
-  final MobileOrder order;
-
-  static const List<String> _steps = ManagerProgressScreen._steps;
+  final ManagerOrderSummary order;
 
   @override
   Widget build(BuildContext context) {
-    final currentIndex = _steps.indexOf(order.fieldProgressStatus);
-    final progressValue = currentIndex < 0 ? 0.12 : (currentIndex + 1) / _steps.length;
-    final accent = order.hasEmergency ? AppColors.error : AppColors.info;
+    final hasCurrentTask = order.currentTask != null && order.currentTask!.isNotEmpty;
+    final accent = hasCurrentTask ? AppColors.info : AppColors.warning;
 
     return InfoCard(
       onTap: () => Navigator.pushNamed(
         context,
         AppRoutes.managerFieldProgress,
-        arguments: order.id,
+        arguments: ManagerOrderRouteArgs(orderId: order.orderId),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,7 +224,7 @@ class _ProgressCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      order.id,
+                      order.orderNumber,
                       style: const TextStyle(
                         color: AppColors.primary,
                         fontSize: 12,
@@ -195,7 +233,7 @@ class _ProgressCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      order.customerName,
+                      order.venueAddress ?? 'Chua co dia diem',
                       style: const TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 15,
@@ -205,12 +243,12 @@ class _ProgressCard extends StatelessWidget {
                   ],
                 ),
               ),
-              StatusChip(label: order.fieldProgressStatus),
+              StatusChip(label: order.status.isEmpty ? 'Unknown' : order.status),
             ],
           ),
           const SizedBox(height: 12),
           LinearProgressIndicator(
-            value: progressValue.clamp(0.0, 1.0),
+            value: hasCurrentTask ? 0.6 : 0.2,
             minHeight: 8,
             borderRadius: BorderRadius.circular(999),
             backgroundColor: AppColors.primaryLight,
@@ -221,7 +259,9 @@ class _ProgressCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Bước hiện tại: ${order.fieldProgressStatus}',
+                  hasCurrentTask
+                      ? 'Current task: ${order.currentTask}'
+                      : 'Backend chua tra currentTask',
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 12,
@@ -230,7 +270,7 @@ class _ProgressCard extends StatelessWidget {
                 ),
               ),
               Text(
-                '${(progressValue * 100).round()}%',
+                hasCurrentTask ? 'Feed live' : 'Partial',
                 style: TextStyle(
                   color: accent,
                   fontSize: 12,
@@ -241,32 +281,14 @@ class _ProgressCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            order.location,
+            order.lastUpdate == null
+                ? 'Last update: chua co'
+                : 'Last update: ${order.lastUpdate!.day}/${order.lastUpdate!.month}/${order.lastUpdate!.year} ${order.lastUpdate!.hour.toString().padLeft(2, '0')}:${order.lastUpdate!.minute.toString().padLeft(2, '0')}',
             style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 12,
             ),
           ),
-          if (order.urgencyMessage != null) ...[
-            const SizedBox(height: 12),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.errorLight,
-                borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-              ),
-              child: Text(
-                order.urgencyMessage!,
-                style: const TextStyle(
-                  color: AppColors.error,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  height: 1.35,
-                ),
-              ),
-            ),
-          ],
         ],
       ),
     );

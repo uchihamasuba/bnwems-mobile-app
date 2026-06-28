@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/custom_app_bar.dart';
+import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/info_card.dart';
+import '../../../core/widgets/loading_state.dart';
 import '../../../core/widgets/status_chip.dart';
+import '../../manager/models/manager_mobile_models.dart';
 import '../../manager/models/manager_route_args.dart';
-import '../../../shared/mock/mock_data.dart';
-import '../../../shared/models/core_models.dart';
+import '../../manager/services/manager_mobile_service.dart';
+import '../../manager/widgets/manager_backend_gap_card.dart';
 
 class FieldProgressScreen extends StatefulWidget {
   const FieldProgressScreen({super.key});
@@ -17,157 +21,208 @@ class FieldProgressScreen extends StatefulWidget {
 }
 
 class _FieldProgressScreenState extends State<FieldProgressScreen> {
-  late String _orderId;
-  late List<FieldProgressStep> _steps;
+  late Future<_FieldProgressData> _future;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _future = _loadData(_resolveOrderId());
+  }
+
+  String _resolveOrderId() {
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is ManagerOrderRouteArgs) {
-      _orderId = args.orderId;
-    } else if (args is String) {
-      _orderId = args;
-    } else {
-      _orderId = 'ORD-2026-001';
+      return args.orderId;
     }
-    _steps = MockData.fieldProgress[_orderId] ?? [];
+    if (args is String) {
+      return args;
+    }
+    return '';
+  }
+
+  Future<_FieldProgressData> _loadData(String orderId) async {
+    if (orderId.isEmpty) {
+      throw Exception('Khong tim thay orderId de tai tien do hien truong.');
+    }
+
+    final results = await Future.wait([
+      ManagerMobileService.getOrderDetail(orderId),
+      ManagerMobileService.getTasks(orderId: orderId, limit: 50),
+      ManagerMobileService.getVerificationSummary(orderId),
+    ]);
+
+    return _FieldProgressData(
+      order: results[0] as ManagerOrderDetail,
+      tasks: results[1] as List<ManagerTaskSummary>,
+      verification: results[2] as ManagerVerificationSummary,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final order = MockData.orders.firstWhere(
-      (o) => o.id == _orderId,
-      orElse: () => MockData.orders.first,
-    );
+    return FutureBuilder<_FieldProgressData>(
+      future: _future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const AppScaffold(
+            useSafeArea: true,
+            body: LoadingState(),
+          );
+        }
 
-    return AppScaffold(
-      useSafeArea: true,
-      appBar: CustomAppBar(
-        title: 'Tiến độ thực địa $_orderId',
-        showBackButton: true,
-      ),
-      body: Column(
-        children: [
-          // Order summary banner at the top
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: AppSizes.m),
-            color: AppColors.primaryLight.withOpacity(0.4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        order.customerName,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        order.location,
-                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                StatusChip(label: order.fieldProgressStatus),
-              ],
+        if (snapshot.hasError || !snapshot.hasData) {
+          return AppScaffold(
+            useSafeArea: true,
+            appBar: const CustomAppBar(
+              title: 'Tien do hien truong',
+              showBackButton: true,
             ),
+            body: ErrorState(
+              message: snapshot.error.toString(),
+            ),
+          );
+        }
+
+        final data = snapshot.data!;
+        final tasks = [...data.tasks]
+          ..sort((a, b) {
+            final aTime = a.scheduledStart ?? DateTime.fromMillisecondsSinceEpoch(0);
+            final bTime = b.scheduledStart ?? DateTime.fromMillisecondsSinceEpoch(0);
+            return aTime.compareTo(bTime);
+          });
+
+        return AppScaffold(
+          useSafeArea: true,
+          appBar: CustomAppBar(
+            title: 'Tien do ${data.order.orderNumber}',
+            showBackButton: true,
           ),
-          
-          // Timeline list
-          Expanded(
-            child: _steps.isEmpty
-                ? const Center(
-                    child: Text(
-                      'Không tìm thấy dữ liệu tiến độ thực địa cho đơn hàng này.',
-                      style: TextStyle(color: AppColors.textSecondary),
+          body: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: AppSizes.m,
+                ),
+                color: AppColors.primaryLight.withOpacity(0.4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            data.order.customer?.fullName.isNotEmpty == true
+                                ? data.order.customer!.fullName
+                                : data.order.orderNumber,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            data.order.venueAddress ?? 'Chua co dia diem',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textSecondary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
                     ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(AppSizes.m),
-                    itemCount: _steps.length,
-                    itemBuilder: (context, index) {
-                      final step = _steps[index];
-                      final isLast = index == _steps.length - 1;
-                      return _buildTimelineRow(step, isLast);
-                    },
-                  ),
+                    StatusChip(label: data.order.status),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: tasks.isEmpty
+                    ? ListView(
+                        padding: const EdgeInsets.all(AppSizes.m),
+                        children: const [
+                          ManagerBackendGapCard(
+                            title: 'Chua co timeline chi tiet',
+                            message:
+                                'Backend chua co GET /orders/:id/field-progress. Man nay dang dung GET /tasks?orderId=... de hien thi tien trinh gan dung.',
+                          ),
+                        ],
+                      )
+                    : ListView(
+                        padding: const EdgeInsets.all(AppSizes.m),
+                        children: [
+                          const ManagerBackendGapCard(
+                            title: 'Timeline dang dung task list that',
+                            message:
+                                'Do backend chua co workflow step timeline theo order, man nay dang hien cac task thuc te cua order de theo doi tien do.',
+                          ),
+                          const SizedBox(height: AppSizes.m),
+                          ...List.generate(
+                            tasks.length,
+                            (index) => _buildTimelineRow(
+                              tasks[index],
+                              index == tasks.length - 1,
+                            ),
+                          ),
+                          InfoCard(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Verification summary',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Tasks completed: ${data.verification.tasksCompleted}/${data.verification.totalTasks}',
+                                ),
+                                const SizedBox(height: 4),
+                                Text('Handover: ${data.verification.handoverStatus}'),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Damage/loss recorded: ${data.verification.damageLossRecorded}',
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Verification status: ${data.verification.verificationStatus}',
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildTimelineRow(FieldProgressStep step, bool isLast) {
-    Color stepColor;
-    Widget markerWidget;
-
-    switch (step.status) {
-      case 'completed':
-        stepColor = AppColors.success;
-        markerWidget = Container(
-          width: 20,
-          height: 20,
-          decoration: const BoxDecoration(color: AppColors.success, shape: BoxShape.circle),
-          child: const Icon(Icons.check, size: 12, color: Colors.white),
-        );
-        break;
-      case 'inProgress':
-        stepColor = AppColors.primary;
-        markerWidget = Container(
-          width: 20,
-          height: 20,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.primary, width: 3),
-          ),
-          child: Center(
-            child: Container(
-              width: 8,
-              height: 8,
-              decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-            ),
-          ),
-        );
-        break;
-      case 'delayed':
-        stepColor = AppColors.error;
-        markerWidget = Container(
-          width: 20,
-          height: 20,
-          decoration: const BoxDecoration(color: AppColors.error, shape: BoxShape.circle),
-          child: const Icon(Icons.warning_rounded, size: 12, color: Colors.white),
-        );
-        break;
-      case 'pending':
-      default:
-        stepColor = AppColors.textLight;
-        markerWidget = Container(
-          width: 20,
-          height: 20,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.textLight, width: 2),
-          ),
-        );
-        break;
-    }
+  Widget _buildTimelineRow(ManagerTaskSummary task, bool isLast) {
+    final stepColor = _colorForStatus(task.status);
 
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Left side: Indicator and line
           Column(
             children: [
-              markerWidget,
+              Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: stepColor,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.check, size: 12, color: Colors.white),
+              ),
               if (!isLast)
                 Expanded(
                   child: Container(
@@ -178,14 +233,12 @@ class _FieldProgressScreenState extends State<FieldProgressScreen> {
             ],
           ),
           const SizedBox(width: AppSizes.m),
-          
-          // Right side: Card detail content
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(bottom: 24.0),
               child: InfoCard(
-                borderColor: step.status == 'inProgress' ? AppColors.primary.withOpacity(0.4) : AppColors.divider,
-                color: step.status == 'inProgress' ? AppColors.primaryLight.withOpacity(0.2) : Colors.white,
+                borderColor: stepColor.withOpacity(0.35),
+                color: stepColor.withOpacity(0.05),
                 padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,59 +246,58 @@ class _FieldProgressScreenState extends State<FieldProgressScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          step.stepName,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: step.status == 'pending' ? AppColors.textSecondary : AppColors.textPrimary,
+                        Expanded(
+                          child: Text(
+                            task.taskType,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
                         ),
-                        if (step.status != 'pending')
-                          Text(
-                            step.updatedAt,
-                            style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
-                          ),
+                        StatusChip(label: task.status),
                       ],
                     ),
-                    if (step.status != 'pending') ...[
-                      const SizedBox(height: 6),
+                    const SizedBox(height: 6),
+                    if (task.location != null && task.location!.isNotEmpty)
                       Row(
                         children: [
-                          const Icon(Icons.account_circle_outlined, size: 14, color: AppColors.textSecondary),
+                          const Icon(
+                            Icons.place_outlined,
+                            size: 14,
+                            color: AppColors.textSecondary,
+                          ),
                           const SizedBox(width: 4),
-                          Text(
-                            'Cập nhật: ${step.updatedBy}',
-                            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                          Expanded(
+                            child: Text(
+                              task.location!,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                    ],
-                    if (step.note != null && step.note!.isNotEmpty) ...[
+                    if (task.scheduledStart != null) ...[
                       const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.background,
-                          borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-                        ),
-                        child: Text(
-                          step.note!,
-                          style: const TextStyle(fontSize: 12, color: AppColors.textPrimary, height: 1.3),
+                      Text(
+                        'Start: ${_formatDateTime(task.scheduledStart!)}',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
                         ),
                       ),
                     ],
-                    if (step.evidenceCount > 0) ...[
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          const Icon(Icons.photo_library_outlined, size: 14, color: AppColors.primary),
-                          const SizedBox(width: 6),
-                          Text(
-                            '${step.evidenceCount} hình ảnh minh chứng',
-                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary),
-                          ),
-                        ],
+                    if (task.scheduledEnd != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        'End: ${_formatDateTime(task.scheduledEnd!)}',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ],
                   ],
@@ -257,4 +309,34 @@ class _FieldProgressScreenState extends State<FieldProgressScreen> {
       ),
     );
   }
+
+  Color _colorForStatus(String status) {
+    final normalized = status.toLowerCase();
+    if (normalized.contains('done') || normalized.contains('complete')) {
+      return AppColors.success;
+    }
+    if (normalized.contains('progress')) {
+      return AppColors.primary;
+    }
+    if (normalized.contains('assign')) {
+      return AppColors.warning;
+    }
+    return AppColors.textLight;
+  }
+
+  String _formatDateTime(DateTime value) {
+    return '${value.day}/${value.month}/${value.year} ${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
+  }
+}
+
+class _FieldProgressData {
+  const _FieldProgressData({
+    required this.order,
+    required this.tasks,
+    required this.verification,
+  });
+
+  final ManagerOrderDetail order;
+  final List<ManagerTaskSummary> tasks;
+  final ManagerVerificationSummary verification;
 }

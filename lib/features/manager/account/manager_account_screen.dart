@@ -4,125 +4,185 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/widgets/app_scaffold.dart';
+import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/info_card.dart';
+import '../../../core/widgets/loading_state.dart';
+import '../../../models/user_model.dart';
 import '../../../services/auth_service.dart';
-import '../../../shared/mock/mock_data.dart';
 import '../widgets/manager_app_header.dart';
 import '../widgets/manager_section_header.dart';
 
-class ManagerAccountScreen extends StatelessWidget {
+class ManagerAccountScreen extends StatefulWidget {
   const ManagerAccountScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final user = MockData.managerUser;
+  State<ManagerAccountScreen> createState() => _ManagerAccountScreenState();
+}
 
-    return AppScaffold(
-      useSafeArea: true,
-      body: ListView(
-        padding: const EdgeInsets.all(AppSizes.m),
-        children: [
-          ManagerAppHeader(
-            title: 'Tài khoản',
-            subtitle: 'Quản lý phiên đăng nhập và truy cập nhanh tới các tác vụ thường dùng.',
-            trailing: CircleAvatar(
-              radius: 24,
-              backgroundColor: Colors.white.withOpacity(0.16),
-              child: Text(
-                user.fullName.substring(0, 1),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
+class _ManagerAccountScreenState extends State<ManagerAccountScreen> {
+  late Future<UserModel?> _userFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _userFuture = AuthService.getStoredUser();
+  }
+
+  void _reload() {
+    setState(() {
+      _userFuture = AuthService.getStoredUser();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<UserModel?>(
+      future: _userFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const AppScaffold(
+            useSafeArea: true,
+            body: LoadingState(),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return AppScaffold(
+            useSafeArea: true,
+            body: ErrorState(
+              message: snapshot.error.toString(),
+              onRetry: _reload,
+            ),
+          );
+        }
+
+        final user = snapshot.data;
+        if (user == null) {
+          return AppScaffold(
+            useSafeArea: true,
+            body: ErrorState(
+              title: 'Khong tim thay phien dang nhap',
+              message: 'Hay dang nhap lai de tai thong tin Manager.',
+              onRetry: _reload,
+            ),
+          );
+        }
+
+        return AppScaffold(
+          useSafeArea: true,
+          body: ListView(
+            padding: const EdgeInsets.all(AppSizes.m),
+            children: [
+              ManagerAppHeader(
+                title: 'Tai khoan',
+                subtitle:
+                    'Quan ly phien dang nhap va truy cap nhanh toi cac tac vu thuong dung.',
+                trailing: CircleAvatar(
+                  radius: 24,
+                  backgroundColor: Colors.white.withOpacity(0.16),
+                  child: Text(
+                    user.fullName.isEmpty ? 'M' : user.fullName.substring(0, 1),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-          const SizedBox(height: AppSizes.l),
-          const ManagerSectionHeader(
-            title: 'Thông tin Manager',
-            subtitle: 'Thông tin hiển thị phục vụ trải nghiệm giao diện mobile.',
-          ),
-          const SizedBox(height: AppSizes.m),
-          InfoCard(
-            child: Column(
-              children: [
-                _InfoTile(
-                  icon: Icons.person_outline_rounded,
-                  label: 'Họ và tên',
-                  value: user.fullName,
-                ),
-                const Divider(height: 24, color: AppColors.divider),
-                _InfoTile(
-                  icon: Icons.mail_outline_rounded,
-                  label: 'Email',
-                  value: user.email,
-                ),
-                const Divider(height: 24, color: AppColors.divider),
-                _InfoTile(
-                  icon: Icons.badge_outlined,
-                  label: 'Vai trò',
-                  value: 'Manager',
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSizes.l),
-          const ManagerSectionHeader(
-            title: 'Tác vụ nhanh',
-            subtitle: 'Điều hướng một chạm tới các khu vực thường dùng.',
-          ),
-          const SizedBox(height: AppSizes.m),
-          _ActionRow(
-            icon: Icons.today_rounded,
-            title: 'Đơn hàng hôm nay',
-            onTap: () => Navigator.pushNamed(context, AppRoutes.managerToday),
-          ),
-          _ActionRow(
-            icon: Icons.notifications_active_outlined,
-            title: 'Thông báo khẩn',
-            onTap: () => Navigator.pushNamed(
-              context,
-              AppRoutes.managerNotifications,
-            ),
-          ),
-          _ActionRow(
-            icon: Icons.photo_library_outlined,
-            title: 'Minh chứng hiện trường',
-            onTap: () => Navigator.pushNamed(
-              context,
-              AppRoutes.managerEvidenceGallery,
-            ),
-          ),
-          const SizedBox(height: AppSizes.l),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.error,
-                foregroundColor: Colors.white,
-                minimumSize: const Size.fromHeight(AppSizes.buttonHeight),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
+              const SizedBox(height: AppSizes.l),
+              const ManagerSectionHeader(
+                title: 'Thong tin Manager',
+                subtitle: 'Thong tin hien thi phuc vu trai nghiem giao dien mobile.',
+              ),
+              const SizedBox(height: AppSizes.m),
+              InfoCard(
+                child: Column(
+                  children: [
+                    _InfoTile(
+                      icon: Icons.person_outline_rounded,
+                      label: 'Ho va ten',
+                      value: user.fullName,
+                    ),
+                    const Divider(height: 24, color: AppColors.divider),
+                    _InfoTile(
+                      icon: Icons.badge_outlined,
+                      label: 'Ten dang nhap',
+                      value: user.username,
+                    ),
+                    const Divider(height: 24, color: AppColors.divider),
+                    _InfoTile(
+                      icon: Icons.shield_outlined,
+                      label: 'Vai tro',
+                      value: user.role,
+                    ),
+                    const Divider(height: 24, color: AppColors.divider),
+                    _InfoTile(
+                      icon: Icons.verified_user_outlined,
+                      label: 'Trang thai',
+                      value: user.status,
+                    ),
+                  ],
                 ),
               ),
-              onPressed: () async {
-                await AuthService.logout();
-                if (!context.mounted) {
-                  return;
-                }
-                Navigator.pushNamedAndRemoveUntil(
+              const SizedBox(height: AppSizes.l),
+              const ManagerSectionHeader(
+                title: 'Tac vu nhanh',
+                subtitle: 'Dieu huong mot cham toi cac khu vuc thuong dung.',
+              ),
+              const SizedBox(height: AppSizes.m),
+              _ActionRow(
+                icon: Icons.today_rounded,
+                title: 'Don hang hom nay',
+                onTap: () => Navigator.pushNamed(context, AppRoutes.managerToday),
+              ),
+              _ActionRow(
+                icon: Icons.notifications_active_outlined,
+                title: 'Thong bao khan',
+                onTap: () => Navigator.pushNamed(
                   context,
-                  AppRoutes.login,
-                  (route) => false,
-                );
-              },
-              icon: const Icon(Icons.logout_rounded),
-              label: const Text('Đăng xuất'),
-            ),
+                  AppRoutes.managerNotifications,
+                ),
+              ),
+              _ActionRow(
+                icon: Icons.photo_library_outlined,
+                title: 'Minh chung hien truong',
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  AppRoutes.managerEvidenceGallery,
+                ),
+              ),
+              const SizedBox(height: AppSizes.l),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.error,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size.fromHeight(AppSizes.buttonHeight),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
+                    ),
+                  ),
+                  onPressed: () async {
+                    await AuthService.logout();
+                    if (!context.mounted) {
+                      return;
+                    }
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      AppRoutes.login,
+                      (route) => false,
+                    );
+                  },
+                  icon: const Icon(Icons.logout_rounded),
+                  label: const Text('Dang xuat'),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -165,7 +225,7 @@ class _InfoTile extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                value,
+                value.isEmpty ? '--' : value,
                 style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 14,

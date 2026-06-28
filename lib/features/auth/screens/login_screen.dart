@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/routes/app_routes.dart';
-import '../../../core/widgets/app_scaffold.dart';
-import '../../../core/widgets/primary_button.dart';
 import '../../../models/user_model.dart';
 import '../../../services/api_service.dart';
 import '../../../services/auth_service.dart';
@@ -16,18 +12,83 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+
   bool _obscurePassword = true;
   bool _isLoading = false;
   bool _isCheckingSession = true;
   String? _errorMessage;
 
+  late final AnimationController _heroAnimationController;
+  late final Animation<double> _floatAnimation;
+  late final Animation<double> _scaleAnimation;
+  late final Animation<double> _rotateAnimation;
+  late final Animation<double> _sparkleAnimation;
+
+  // Elegant wedding palette
+  static const Color _ivory = Color(0xFFFBF8F3);
+  static const Color _warmIvory = Color(0xFFF6EFE7);
+  static const Color _champagne = Color(0xFFEDE0CE);
+  static const Color _dustyRose = Color(0xFFA05A66);
+  static const Color _deepRose = Color(0xFF894D58);
+  static const Color _gold = Color(0xFFC2A15D);
+  static const Color _textDark = Color(0xFF2F2A28);
+  static const Color _textMuted = Color(0xFF786D68);
+  static const Color _borderSoft = Color(0xFFE4D5CC);
+
   @override
   void initState() {
     super.initState();
+
+    _heroAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2800),
+    )..repeat(reverse: true);
+
+    _floatAnimation = Tween<double>(
+      begin: -4,
+      end: 4,
+    ).animate(
+      CurvedAnimation(
+        parent: _heroAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    _scaleAnimation = Tween<double>(
+      begin: 0.98,
+      end: 1.035,
+    ).animate(
+      CurvedAnimation(
+        parent: _heroAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    _rotateAnimation = Tween<double>(
+      begin: -0.02,
+      end: 0.02,
+    ).animate(
+      CurvedAnimation(
+        parent: _heroAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    _sparkleAnimation = Tween<double>(
+      begin: 0.45,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(
+        parent: _heroAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
     _restoreSession();
   }
 
@@ -35,16 +96,21 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final storedUser = await AuthService.getStoredUser();
       if (!mounted) return;
+
       if (storedUser != null) {
         Navigator.pushReplacementNamed(context, _routeForRole(storedUser.role));
         return;
       }
     } catch (_) {}
-    if (mounted) setState(() => _isCheckingSession = false);
+
+    if (mounted) {
+      setState(() => _isCheckingSession = false);
+    }
   }
 
   Future<void> _handleLogin() async {
     FocusScope.of(context).unfocus();
+
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
@@ -57,16 +123,21 @@ class _LoginScreenState extends State<LoginScreen> {
         username: _usernameController.text.trim(),
         password: _passwordController.text,
       );
+
       if (!mounted) return;
+
       final user = result['user'] as UserModel;
       Navigator.pushReplacementNamed(context, _routeForRole(user.role));
     } on ApiException catch (error) {
       setState(() => _errorMessage = error.message);
     } catch (_) {
-      setState(() => _errorMessage =
-      'Không thể kết nối tới server. Vui lòng thử lại.');
+      setState(() {
+        _errorMessage = 'Không thể kết nối tới server. Vui lòng thử lại.';
+      });
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -86,6 +157,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
+    _heroAnimationController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -95,98 +167,142 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     if (_isCheckingSession) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        backgroundColor: _ivory,
+        body: Center(
+          child: CircularProgressIndicator(
+            color: _deepRose,
+          ),
+        ),
       );
     }
 
     return Scaffold(
-      body: Column(
-        children: [
-          // ── Hero header ──────────────────────────────────────────
-          _buildHero(),
-
-          // ── Form body ────────────────────────────────────────────
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildSectionLabel('Thông tin đăng nhập'),
-                    const SizedBox(height: 14),
-                    _buildUsernameField(),
-                    const SizedBox(height: 12),
-                    _buildPasswordField(),
-                    if (_errorMessage != null) ...[
-                      const SizedBox(height: 16),
-                      _buildErrorBanner(),
-                    ],
-                    const SizedBox(height: 24),
-                    _buildLoginButton(),
-                    const SizedBox(height: 32),
-                    _buildFooter(),
-                  ],
-                ),
+      backgroundColor: _ivory,
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Stack(
+          children: [
+            Positioned(
+              top: -100,
+              right: -90,
+              child: _buildBlurCircle(
+                size: 230,
+                color: _champagne,
+                opacity: 0.48,
               ),
             ),
-          ),
-        ],
+            Positioned(
+              bottom: -100,
+              left: -80,
+              child: _buildBlurCircle(
+                size: 210,
+                color: _borderSoft,
+                opacity: 0.36,
+              ),
+            ),
+            Column(
+              children: [
+                _buildHero(),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildWelcomeCard(),
+                          const SizedBox(height: 20),
+                          _buildSectionLabel('Thông tin đăng nhập'),
+                          const SizedBox(height: 12),
+                          _buildUsernameField(),
+                          const SizedBox(height: 12),
+                          _buildPasswordField(),
+                          if (_errorMessage != null) ...[
+                            const SizedBox(height: 14),
+                            _buildErrorBanner(),
+                          ],
+                          const SizedBox(height: 22),
+                          _buildLoginButton(),
+                          const SizedBox(height: 24),
+                          _buildFooter(),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  // ── Hero ──────────────────────────────────────────────────────────
+  Widget _buildBlurCircle({
+    required double size,
+    required Color color,
+    required double opacity,
+  }) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color.withOpacity(opacity),
+      ),
+    );
+  }
+
   Widget _buildHero() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(24, 72, 24, 36),
+      padding: const EdgeInsets.fromLTRB(24, 58, 24, 28),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF1E3A5F), Color(0xFF0F2744)],
+          colors: [
+            _ivory,
+            _warmIvory,
+            _champagne,
+          ],
         ),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+        borderRadius: BorderRadius.vertical(
+          bottom: Radius.circular(30),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x14894D58),
+            blurRadius: 22,
+            offset: Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          // Logo container
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.18),
-                width: 1,
-              ),
-            ),
-            child: const Icon(
-              Icons.lock_person_rounded,
-              size: 34,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 16),
+          _buildAnimatedWeddingIcon(),
+          const SizedBox(height: 18),
           Text(
             AppStrings.appName,
+            textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
+              fontWeight: FontWeight.w800,
+              color: _textDark,
+              height: 1.2,
               letterSpacing: -0.3,
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            'Đăng nhập để tiếp tục',
+          const SizedBox(height: 7),
+          const Text(
+            'Quản lý dịch vụ cưới hỏi & sự kiện',
+            textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13,
-              color: Colors.white.withValues(alpha: 0.55),
-              fontWeight: FontWeight.w400,
+              color: _textMuted,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.1,
             ),
           ),
         ],
@@ -194,111 +310,171 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // ── Section label ─────────────────────────────────────────────────
-  Widget _buildSectionLabel(String label) {
-    return Text(
-      label.toUpperCase(),
-      style: const TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.w600,
-        color: Color(0xFF94A3B8),
-        letterSpacing: 0.8,
-      ),
-    );
-  }
-
-  // ── Username field ────────────────────────────────────────────────
-  Widget _buildUsernameField() {
-    return _FieldCard(
-      child: TextFormField(
-        controller: _usernameController,
-        textInputAction: TextInputAction.next,
-        style: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-          color: Color(0xFF1E293B),
-        ),
-        decoration: const InputDecoration(
-          labelText: 'Username',
-          labelStyle: TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
-          prefixIcon: Icon(Icons.person_outline_rounded,
-              size: 20, color: Color(0xFF94A3B8)),
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          errorBorder: InputBorder.none,
-          focusedErrorBorder: InputBorder.none,
-          contentPadding: EdgeInsets.zero,
-          isDense: true,
-        ),
-        validator: (v) =>
-        (v == null || v.trim().isEmpty) ? 'Vui lòng nhập username' : null,
-      ),
-    );
-  }
-
-  // ── Password field ────────────────────────────────────────────────
-  Widget _buildPasswordField() {
-    return _FieldCard(
-      child: TextFormField(
-        controller: _passwordController,
-        obscureText: _obscurePassword,
-        textInputAction: TextInputAction.done,
-        onFieldSubmitted: (_) => _handleLogin(),
-        style: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-          color: Color(0xFF1E293B),
-        ),
-        decoration: InputDecoration(
-          labelText: AppStrings.passwordLabel,
-          labelStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
-          prefixIcon: const Icon(Icons.lock_outline_rounded,
-              size: 20, color: Color(0xFF94A3B8)),
-          suffixIcon: GestureDetector(
-            onTap: () => setState(() => _obscurePassword = !_obscurePassword),
-            child: Icon(
-              _obscurePassword
-                  ? Icons.visibility_off_outlined
-                  : Icons.visibility_outlined,
-              size: 20,
-              color: const Color(0xFFCBD5E1),
+  Widget _buildAnimatedWeddingIcon() {
+    return AnimatedBuilder(
+      animation: _heroAnimationController,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(0, _floatAnimation.value),
+          child: Transform.rotate(
+            angle: _rotateAnimation.value,
+            child: Transform.scale(
+              scale: _scaleAnimation.value,
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 94,
+                    height: 94,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withOpacity(0.46),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _deepRose.withOpacity(0.08),
+                          blurRadius: 30,
+                          spreadRadius: 6,
+                        ),
+                        BoxShadow(
+                          color: _gold.withOpacity(0.10),
+                          blurRadius: 22,
+                          spreadRadius: 3,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    width: 74,
+                    height: 74,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.white,
+                          _ivory,
+                          _champagne,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(26),
+                      border: Border.all(
+                        color: _borderSoft,
+                        width: 1.2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _deepRose.withOpacity(0.12),
+                          blurRadius: 22,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.diamond_rounded,
+                      size: 34,
+                      color: _gold,
+                    ),
+                  ),
+                  Positioned(
+                    top: -7,
+                    right: 4,
+                    child: _buildSparkle(
+                      size: 20,
+                      color: _gold,
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 3,
+                    left: -7,
+                    child: _buildSparkle(
+                      size: 15,
+                      color: _dustyRose,
+                    ),
+                  ),
+                  Positioned(
+                    right: -10,
+                    bottom: 11,
+                    child: Container(
+                      width: 26,
+                      height: 26,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                        border: Border.all(
+                          color: _gold,
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: _gold.withOpacity(0.18),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.favorite_border_rounded,
+                        size: 13,
+                        color: _deepRose,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          errorBorder: InputBorder.none,
-          focusedErrorBorder: InputBorder.none,
-          contentPadding: EdgeInsets.zero,
-          isDense: true,
-        ),
-        validator: (v) =>
-        (v == null || v.isEmpty) ? 'Vui lòng nhập mật khẩu' : null,
+        );
+      },
+    );
+  }
+
+  Widget _buildSparkle({
+    required double size,
+    required Color color,
+  }) {
+    return Opacity(
+      opacity: _sparkleAnimation.value,
+      child: Icon(
+        Icons.auto_awesome_rounded,
+        size: size,
+        color: color,
       ),
     );
   }
 
-  // ── Error banner ──────────────────────────────────────────────────
-  Widget _buildErrorBanner() {
+  Widget _buildWelcomeCard() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
       decoration: BoxDecoration(
-        color: const Color(0xFFFEF2F2),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFFECACA)),
+        color: Colors.white.withOpacity(0.96),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: _borderSoft,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: _deepRose.withOpacity(0.045),
+            blurRadius: 18,
+            offset: const Offset(0, 7),
+          ),
+        ],
       ),
-      child: Row(
+      child: const Row(
         children: [
-          const Icon(Icons.error_outline_rounded,
-              size: 18, color: Color(0xFFDC2626)),
-          const SizedBox(width: 10),
+          Icon(
+            Icons.event_available_rounded,
+            color: _gold,
+            size: 22,
+          ),
+          SizedBox(width: 12),
           Expanded(
             child: Text(
-              _errorMessage!,
-              style: const TextStyle(
-                fontSize: 13,
-                color: Color(0xFFDC2626),
+              'Đăng nhập để theo dõi lịch sự kiện, công việc và tiến độ phục vụ.',
+              style: TextStyle(
+                fontSize: 13.5,
+                height: 1.45,
+                color: _textMuted,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -308,19 +484,156 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // ── Login button ──────────────────────────────────────────────────
+  Widget _buildSectionLabel(String label) {
+    return Text(
+      label.toUpperCase(),
+      style: const TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w800,
+        color: _deepRose,
+        letterSpacing: 0.9,
+      ),
+    );
+  }
+
+  Widget _buildUsernameField() {
+    return _FieldCard(
+      child: TextFormField(
+        controller: _usernameController,
+        textInputAction: TextInputAction.next,
+        style: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+          color: _textDark,
+        ),
+        decoration: const InputDecoration(
+          labelText: 'Tên đăng nhập',
+          labelStyle: TextStyle(
+            fontSize: 13,
+            color: _textMuted,
+          ),
+          prefixIcon: Icon(
+            Icons.person_outline_rounded,
+            size: 20,
+            color: _deepRose,
+          ),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+          focusedErrorBorder: InputBorder.none,
+          contentPadding: EdgeInsets.zero,
+          isDense: true,
+        ),
+        validator: (v) {
+          if (v == null || v.trim().isEmpty) {
+            return 'Vui lòng nhập tên đăng nhập';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
+  Widget _buildPasswordField() {
+    return _FieldCard(
+      child: TextFormField(
+        controller: _passwordController,
+        obscureText: _obscurePassword,
+        textInputAction: TextInputAction.done,
+        onFieldSubmitted: (_) => _handleLogin(),
+        style: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+          color: _textDark,
+        ),
+        decoration: InputDecoration(
+          labelText: AppStrings.passwordLabel,
+          labelStyle: const TextStyle(
+            fontSize: 13,
+            color: _textMuted,
+          ),
+          prefixIcon: const Icon(
+            Icons.lock_outline_rounded,
+            size: 20,
+            color: _deepRose,
+          ),
+          suffixIcon: GestureDetector(
+            onTap: () {
+              setState(() => _obscurePassword = !_obscurePassword);
+            },
+            child: Icon(
+              _obscurePassword
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+              size: 20,
+              color: _textMuted,
+            ),
+          ),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+          focusedErrorBorder: InputBorder.none,
+          contentPadding: EdgeInsets.zero,
+          isDense: true,
+        ),
+        validator: (v) {
+          if (v == null || v.isEmpty) {
+            return 'Vui lòng nhập mật khẩu';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
+  Widget _buildErrorBanner() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF1F2),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: const Color(0xFFFDA4AF),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.error_outline_rounded,
+            size: 18,
+            color: Color(0xFFE11D48),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              _errorMessage!,
+              style: const TextStyle(
+                fontSize: 13,
+                color: Color(0xFFE11D48),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildLoginButton() {
     return SizedBox(
       height: 52,
       child: ElevatedButton(
         onPressed: _isLoading ? null : _handleLogin,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF1E3A5F),
+          backgroundColor: _deepRose,
           foregroundColor: Colors.white,
-          disabledBackgroundColor: const Color(0xFF1E3A5F).withValues(alpha: 0.5),
+          disabledBackgroundColor: _deepRose.withOpacity(0.45),
           elevation: 0,
+          shadowColor: _deepRose.withOpacity(0.18),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(17),
           ),
         ),
         child: _isLoading
@@ -339,44 +652,59 @@ class _LoginScreenState extends State<LoginScreen> {
               'Đăng nhập',
               style: TextStyle(
                 fontSize: 15,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w800,
                 letterSpacing: 0.2,
               ),
             ),
             SizedBox(width: 8),
-            Icon(Icons.arrow_forward_rounded, size: 18),
+            Icon(
+              Icons.arrow_forward_rounded,
+              size: 18,
+            ),
           ],
         ),
       ),
     );
   }
 
-  // ── Footer ────────────────────────────────────────────────────────
   Widget _buildFooter() {
     return const Text(
       AppStrings.copyright,
       textAlign: TextAlign.center,
       style: TextStyle(
         fontSize: 11,
-        color: Color(0xFFCBD5E1),
+        color: Color(0xFFA99A92),
+        fontWeight: FontWeight.w500,
       ),
     );
   }
 }
 
-// ── Reusable field card ───────────────────────────────────────────────
 class _FieldCard extends StatelessWidget {
   final Widget child;
-  const _FieldCard({required this.child});
+
+  const _FieldCard({
+    required this.child,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      height: 52,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        color: Colors.white.withOpacity(0.98),
+        borderRadius: BorderRadius.circular(17),
+        border: Border.all(
+          color: const Color(0xFFE4D5CC),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF894D58).withOpacity(0.045),
+            blurRadius: 16,
+            offset: const Offset(0, 7),
+          ),
+        ],
       ),
       child: child,
     );

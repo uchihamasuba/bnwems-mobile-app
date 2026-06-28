@@ -94,6 +94,19 @@ class ManagerMobileService {
         .toList();
   }
 
+  static Future<ManagerTaskSummary?> getSurveyTaskByOrder(String orderId) async {
+    final tasks = await getTasks(orderId: orderId, page: 1, limit: 50);
+
+    for (final task in tasks) {
+      final normalized = task.taskType.toLowerCase();
+      if (normalized.contains('survey') || normalized.contains('khao sat')) {
+        return task;
+      }
+    }
+
+    return tasks.isEmpty ? null : tasks.first;
+  }
+
   static Future<ManagerSurveyReport> getSurveyReport(String taskId) async {
     final response = await ApiService.get('/tasks/$taskId/survey-report');
     return ManagerSurveyReport.fromJson(
@@ -109,6 +122,14 @@ class ManagerMobileService {
     return data
         .map((item) => ManagerPaymentRecord.fromJson(item as Map<String, dynamic>))
         .toList();
+  }
+
+  static Future<ManagerPaymentRecord?> getLatestPaymentByOrder(String orderId) async {
+    final payments = await getPaymentsByOrder(orderId);
+    if (payments.isEmpty) {
+      return null;
+    }
+    return payments.first;
   }
 
   static Future<void> confirmPayment({

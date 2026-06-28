@@ -13,11 +13,11 @@ class ManagerOrderRouteArgs {
 class ManagerSurveyRouteArgs {
   const ManagerSurveyRouteArgs({
     required this.taskId,
-    required this.orderId,
+    this.orderId,
   });
 
   final String taskId;
-  final String orderId;
+  final String? orderId;
 }
 
 class ManagerChangeRequestRouteArgs {
@@ -32,12 +32,12 @@ class ManagerChangeRequestRouteArgs {
 
 class ManagerPaymentRouteArgs {
   const ManagerPaymentRouteArgs({
-    required this.paymentId,
-    required this.orderId,
+    this.paymentId,
+    this.orderId,
   });
 
-  final String paymentId;
-  final String orderId;
+  final String? paymentId;
+  final String? orderId;
 }
 
 class ManagerEvidenceRouteArgs {
