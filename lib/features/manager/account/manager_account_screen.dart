@@ -79,7 +79,7 @@ class _ManagerAccountScreenState extends State<ManagerAccountScreen> {
                     'Quan ly phien dang nhap va truy cap nhanh toi cac tac vu thuong dung.',
                 trailing: CircleAvatar(
                   radius: 24,
-                  backgroundColor: Colors.white.withOpacity(0.16),
+                  backgroundColor: Colors.white.withValues(alpha: 0.16),
                   child: Text(
                     user.fullName.isEmpty ? 'M' : user.fullName.substring(0, 1),
                     style: const TextStyle(
@@ -146,10 +146,10 @@ class _ManagerAccountScreenState extends State<ManagerAccountScreen> {
               ),
               _ActionRow(
                 icon: Icons.photo_library_outlined,
-                title: 'Minh chung hien truong',
+                title: 'Don va minh chung',
                 onTap: () => Navigator.pushNamed(
                   context,
-                  AppRoutes.managerEvidenceGallery,
+                  AppRoutes.managerToday,
                 ),
               ),
               const SizedBox(height: AppSizes.l),

@@ -181,10 +181,9 @@ class ManagerMobileService {
       orderId: orderId,
       surveyEvidences: surveyReport?.evidences ?? const [],
       paymentEvidences: payments.expand((payment) => payment.evidences).toList(),
-      operationNotes: [
-        if (surveyReport != null && surveyReport.notes.isNotEmpty) surveyReport.notes,
-        'Current backend does not expose aggregated handover/damage/return evidence for manager mobile yet.',
-      ],
+      operationNotes: surveyReport != null && surveyReport.notes.isNotEmpty
+          ? [surveyReport.notes]
+          : const [],
     );
   }
 

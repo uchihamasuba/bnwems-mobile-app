@@ -10,7 +10,6 @@ import '../../../core/widgets/secondary_button.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../../manager/models/manager_route_args.dart';
 import '../../manager/services/manager_mobile_service.dart';
-import '../../manager/widgets/manager_backend_gap_card.dart';
 
 class ChangeRequestApprovalScreen extends StatefulWidget {
   const ChangeRequestApprovalScreen({super.key});
@@ -34,7 +33,6 @@ class _ChangeRequestApprovalScreenState extends State<ChangeRequestApprovalScree
       _orderId = args.orderId;
     } else if (args is String) {
       _changeRequestId = args;
-      _orderId = args;
     }
   }
 
@@ -42,9 +40,7 @@ class _ChangeRequestApprovalScreenState extends State<ChangeRequestApprovalScree
     if (_changeRequestId == null || _changeRequestId!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Chua co changeRequestId. Backend can co API detail/list de man hinh nay tai du lieu that.',
-          ),
+          content: Text('Khong co changeRequestId de goi API.'),
         ),
       );
       return;
@@ -60,7 +56,7 @@ class _ChangeRequestApprovalScreenState extends State<ChangeRequestApprovalScree
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Da goi API approve change request: $status')),
+        SnackBar(content: Text('Da gui $status cho change request ${_changeRequestId!}.')),
       );
     } catch (error) {
       if (!mounted) {
@@ -78,10 +74,12 @@ class _ChangeRequestApprovalScreenState extends State<ChangeRequestApprovalScree
 
   @override
   Widget build(BuildContext context) {
+    final canSubmit = _changeRequestId != null && _changeRequestId!.isNotEmpty;
+
     return AppScaffold(
       useSafeArea: true,
       appBar: const CustomAppBar(
-        title: 'Duyet change request',
+        title: 'Change request',
         showBackButton: true,
       ),
       body: Column(
@@ -101,7 +99,7 @@ class _ChangeRequestApprovalScreenState extends State<ChangeRequestApprovalScree
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Change request: ${_changeRequestId ?? 'Unknown'}',
+                                'Change request: ${_changeRequestId ?? '--'}',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
@@ -110,7 +108,7 @@ class _ChangeRequestApprovalScreenState extends State<ChangeRequestApprovalScree
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Order: ${_orderId ?? 'Chua xac dinh'}',
+                                'Order: ${_orderId ?? '--'}',
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: AppColors.textSecondary,
@@ -119,38 +117,27 @@ class _ChangeRequestApprovalScreenState extends State<ChangeRequestApprovalScree
                             ],
                           ),
                         ),
-                        const StatusChip(label: 'Action only'),
+                        StatusChip(label: canSubmit ? 'San sang' : '--'),
                       ],
                     ),
                   ),
                   AppSizes.spacingL,
-                  const ManagerBackendGapCard(
-                    title: 'Backend chua co API chi tiet change request',
-                    message:
-                        'Hien chi co PUT /change-requests/:id/approve. Chua co GET /change-requests/:id hoac GET /orders/:id/change-requests nen mobile khong tai duoc item, reason, quantity, cost impact va evidence that.',
-                  ),
-                  AppSizes.spacingL,
-                  const InfoCard(
+                  InfoCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Trang thai hien tai cua man hinh',
+                        const Text(
+                          'Du lieu hien co',
                           style: TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 14,
                             color: AppColors.textPrimary,
                           ),
                         ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Man hinh da bo MockData. Neu co changeRequestId, ban co the goi API approve/reject that. Phan noi dung chi tiet van can backend bo sung GET detail/list.',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
-                            height: 1.4,
-                          ),
-                        ),
+                        const SizedBox(height: 10),
+                        _DetailRow(label: 'changeRequestId', value: _changeRequestId ?? '--'),
+                        const SizedBox(height: 8),
+                        _DetailRow(label: 'orderId', value: _orderId ?? '--'),
                       ],
                     ),
                   ),
@@ -158,40 +145,76 @@ class _ChangeRequestApprovalScreenState extends State<ChangeRequestApprovalScree
               ),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.all(AppSizes.m),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
-                  blurRadius: 10,
-                  offset: const Offset(0, -4),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: SecondaryButton(
-                    text: _submitting ? 'Dang gui...' : 'Reject',
-                    icon: Icons.cancel_outlined,
-                    onPressed: _submitting ? null : () => _submit('REJECTED'),
+          if (canSubmit)
+            Container(
+              padding: const EdgeInsets.all(AppSizes.m),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 10,
+                    offset: const Offset(0, -4),
                   ),
-                ),
-                const SizedBox(width: AppSizes.s),
-                Expanded(
-                  child: PrimaryButton(
-                    text: _submitting ? 'Dang gui...' : 'Approve',
-                    icon: Icons.check_circle_outline,
-                    onPressed: _submitting ? null : () => _submit('APPROVED'),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: SecondaryButton(
+                      text: _submitting ? 'Dang gui...' : 'Reject',
+                      icon: Icons.cancel_outlined,
+                      onPressed: _submitting ? null : () => _submit('REJECTED'),
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: AppSizes.s),
+                  Expanded(
+                    child: PrimaryButton(
+                      text: _submitting ? 'Dang gui...' : 'Approve',
+                      icon: Icons.check_circle_outline,
+                      onPressed: _submitting ? null : () => _submit('APPROVED'),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
         ],
       ),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  const _DetailRow({
+    required this.label,
+    required this.value,
+  });
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12,
+            ),
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
     );
   }
 }

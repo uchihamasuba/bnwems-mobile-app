@@ -4,13 +4,13 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/custom_app_bar.dart';
+import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/info_card.dart';
 import '../../../core/widgets/loading_state.dart';
 import '../../manager/models/manager_mobile_models.dart';
 import '../../manager/models/manager_route_args.dart';
 import '../../manager/services/manager_mobile_service.dart';
-import '../../manager/widgets/manager_backend_gap_card.dart';
 
 class EvidenceGalleryScreen extends StatefulWidget {
   const EvidenceGalleryScreen({super.key});
@@ -234,19 +234,19 @@ class _EvidenceGalleryScreenState extends State<EvidenceGalleryScreen> {
                 child: data.orderId == null
                     ? const Padding(
                         padding: EdgeInsets.all(AppSizes.m),
-                        child: ManagerBackendGapCard(
-                          title: 'Chua co ngu canh order',
-                          message:
-                              'Backend chua co GET /orders/:id/evidences, nen man Evidence Gallery chi tai duoc khi mo tu mot order cu the de ghep survey + payment evidence.',
+                        child: EmptyState(
+                          title: 'Khong co du lieu minh chung',
+                          description: 'Hay mo tu chi tiet don hang de xem minh chung.',
+                          icon: Icons.folder_off_outlined,
                         ),
                       )
                     : list.isEmpty
                         ? const Padding(
                             padding: EdgeInsets.all(AppSizes.m),
-                            child: ManagerBackendGapCard(
-                              title: 'Evidence con thieu',
-                              message:
-                                  'Hien chi co survey/payment evidence tu API that. Handover, damage/loss, warehouse return va settlement chua co endpoint tong hop.',
+                            child: EmptyState(
+                              title: 'Khong co minh chung',
+                              description: 'Khong co minh chung nao cho order nay.',
+                              icon: Icons.photo_library_outlined,
                             ),
                           )
                         : GridView.builder(

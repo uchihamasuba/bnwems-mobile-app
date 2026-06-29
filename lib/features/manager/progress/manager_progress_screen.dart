@@ -13,7 +13,6 @@ import '../models/manager_mobile_models.dart';
 import '../models/manager_route_args.dart';
 import '../services/manager_mobile_service.dart';
 import '../widgets/manager_app_header.dart';
-import '../widgets/manager_backend_gap_card.dart';
 import '../widgets/manager_section_header.dart';
 
 class ManagerProgressScreen extends StatefulWidget {
@@ -78,7 +77,7 @@ class _ManagerProgressScreenState extends State<ManagerProgressScreen> {
                       'Theo doi feed GET /orders/field-progress va di vao man timeline chi tiet.',
                   trailing: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.14),
+                      color: Colors.white.withValues(alpha: 0.14),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: IconButton(
@@ -121,7 +120,7 @@ class _ManagerProgressScreenState extends State<ManagerProgressScreen> {
                 const SizedBox(height: AppSizes.l),
                 const ManagerSectionHeader(
                   title: 'Danh sach dang theo doi',
-                  subtitle: 'Du lieu hien tai la feed tong hop, backend chua co full workflow timeline theo order.',
+                  subtitle: 'Du lieu lay truc tiep tu feed tien do backend.',
                 ),
                 const SizedBox(height: AppSizes.m),
                 if (orders.isEmpty)
@@ -133,20 +132,13 @@ class _ManagerProgressScreenState extends State<ManagerProgressScreen> {
                       icon: Icons.timeline_rounded,
                     ),
                   )
-                else ...[
-                  const ManagerBackendGapCard(
-                    title: 'Field-progress con han che',
-                    message:
-                        'Endpoint hien tai chi tra currentTask, status va lastUpdate. Man chi tiet se dung task list de gia lap timeline tu du lieu that.',
-                  ),
-                  const SizedBox(height: AppSizes.m),
+                else
                   ...orders.map(
                     (order) => Padding(
                       padding: const EdgeInsets.only(bottom: AppSizes.m),
                       child: _ProgressCard(order: order),
                     ),
                   ),
-                ],
               ],
             ),
           ),
@@ -170,8 +162,8 @@ class _KpiCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InfoCard(
-      color: color.withOpacity(0.08),
-      borderColor: color.withOpacity(0.16),
+      color: color.withValues(alpha: 0.08),
+      borderColor: color.withValues(alpha: 0.16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -206,7 +198,6 @@ class _ProgressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasCurrentTask = order.currentTask != null && order.currentTask!.isNotEmpty;
-    final accent = hasCurrentTask ? AppColors.info : AppColors.warning;
 
     return InfoCard(
       onTap: () => Navigator.pushNamed(
@@ -247,21 +238,11 @@ class _ProgressCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          LinearProgressIndicator(
-            value: hasCurrentTask ? 0.6 : 0.2,
-            minHeight: 8,
-            borderRadius: BorderRadius.circular(999),
-            backgroundColor: AppColors.primaryLight,
-            color: accent,
-          ),
-          const SizedBox(height: 10),
           Row(
             children: [
               Expanded(
                 child: Text(
-                  hasCurrentTask
-                      ? 'Current task: ${order.currentTask}'
-                      : 'Backend chua tra currentTask',
+                  hasCurrentTask ? 'Current task: ${order.currentTask}' : 'Current task: --',
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 12,
@@ -269,14 +250,7 @@ class _ProgressCard extends StatelessWidget {
                   ),
                 ),
               ),
-              Text(
-                hasCurrentTask ? 'Feed live' : 'Partial',
-                style: TextStyle(
-                  color: accent,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              if (hasCurrentTask) const StatusChip(label: 'Live'),
             ],
           ),
           const SizedBox(height: 8),

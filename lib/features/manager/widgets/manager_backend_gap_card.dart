@@ -17,8 +17,8 @@ class ManagerBackendGapCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InfoCard(
-      color: AppColors.warningLight.withOpacity(0.3),
-      borderColor: AppColors.warning.withOpacity(0.3),
+      color: AppColors.warningLight.withValues(alpha: 0.3),
+      borderColor: AppColors.warning.withValues(alpha: 0.3),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

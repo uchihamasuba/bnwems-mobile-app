@@ -25,8 +25,8 @@ class ManagerStatisticCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InfoCard(
-      color: highlight ? color.withOpacity(0.08) : Colors.white,
-      borderColor: highlight ? color.withOpacity(0.28) : AppColors.divider,
+      color: highlight ? color.withValues(alpha: 0.08) : Colors.white,
+      borderColor: highlight ? color.withValues(alpha: 0.28) : AppColors.divider,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -37,7 +37,7 @@ class ManagerStatisticCard extends StatelessWidget {
                 width: compact ? 34 : 38,
                 height: compact ? 34 : 38,
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.14),
+                  color: color.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(icon, color: color, size: compact ? 18 : 20),
@@ -49,11 +49,11 @@ class ManagerStatisticCard extends StatelessWidget {
                   vertical: 3,
                 ),
                 decoration: BoxDecoration(
-                  color: highlight ? color.withOpacity(0.14) : AppColors.background,
+                  color: highlight ? color.withValues(alpha: 0.14) : AppColors.background,
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
-                  compact ? 'Mục' : (highlight ? 'Ưu tiên' : 'Tổng quan'),
+                  compact ? 'Muc' : (highlight ? 'Uu tien' : 'Tong quan'),
                   style: TextStyle(
                     color: highlight ? color : AppColors.textSecondary,
                     fontSize: compact ? 9 : 10,

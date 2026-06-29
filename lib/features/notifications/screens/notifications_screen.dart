@@ -145,10 +145,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
 
     if (refType.contains('payment')) {
-      Navigator.pushNamed(
-        context,
-        AppRoutes.managerPaymentConfirmation,
-        arguments: ManagerPaymentRouteArgs(paymentId: refId),
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Mo don hang lien quan de xem giao dich.'),
+        ),
       );
       return;
     }
@@ -196,7 +196,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             trailing: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.14),
+                color: Colors.white.withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Text(
@@ -240,12 +240,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           if (list.isEmpty)
             const SizedBox(
               height: 300,
-              child: EmptyState(
-                title: 'Khong co thong bao phu hop',
-                description: 'Backend chua tra ve thong bao nao cho bo loc hien tai.',
-                icon: Icons.notifications_off_rounded,
-              ),
-            )
+                    child: EmptyState(
+                      title: 'Khong co thong bao phu hop',
+                      description: 'Khong co thong bao nao cho bo loc hien tai.',
+                      icon: Icons.notifications_off_rounded,
+                    ),
+                  )
           else
             ...list.map(
               (notification) => Padding(
@@ -305,11 +305,11 @@ class _NotificationCard extends StatelessWidget {
 
     return InfoCard(
       onTap: onTap,
-      color: isUnread ? AppColors.primaryLight.withOpacity(0.5) : Colors.white,
+      color: isUnread ? AppColors.primaryLight.withValues(alpha: 0.5) : Colors.white,
       borderColor: isUrgent
-          ? AppColors.error.withOpacity(0.24)
+          ? AppColors.error.withValues(alpha: 0.24)
           : isUnread
-              ? AppColors.primary.withOpacity(0.18)
+              ? AppColors.primary.withValues(alpha: 0.18)
               : AppColors.divider,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -378,7 +378,7 @@ class _NotificationCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             notification.content.isEmpty
-                ? 'Backend khong tra ve noi dung chi tiet cho thong bao nay.'
+                ? 'Khong co noi dung chi tiet.'
                 : notification.content,
             style: const TextStyle(
               color: AppColors.textSecondary,

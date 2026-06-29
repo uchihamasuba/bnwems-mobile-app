@@ -4,6 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/widgets/app_scaffold.dart';
+import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/info_card.dart';
 import '../../../core/widgets/loading_state.dart';
@@ -13,7 +14,6 @@ import '../models/manager_mobile_models.dart';
 import '../models/manager_route_args.dart';
 import '../services/manager_mobile_service.dart';
 import '../widgets/manager_app_header.dart';
-import '../widgets/manager_backend_gap_card.dart';
 import '../widgets/manager_priority_badge.dart';
 import '../widgets/manager_quick_action_tile.dart';
 import '../widgets/manager_section_header.dart';
@@ -101,7 +101,7 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
                       'Hom nay co ${data.todayOrders.length} don can theo doi va $unreadNotifications thong bao chua doc.',
                   trailing: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.14),
+                      color: Colors.white.withValues(alpha: 0.14),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: IconButton(
@@ -144,7 +144,7 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
                       highlight: data.summary.tasksToday > 0,
                     ),
                     ManagerStatisticCard(
-                      label: 'Canh bao backend',
+                      label: 'Alerts',
                       value: '${data.summary.alerts.length}',
                       icon: Icons.crisis_alert_rounded,
                       color: AppColors.error,
@@ -194,7 +194,7 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
                       color: AppColors.warning,
                       onTap: () => Navigator.pushNamed(
                         context,
-                        AppRoutes.managerChangeRequestApproval,
+                        AppRoutes.managerNotifications,
                       ),
                     ),
                     ManagerQuickActionTile(
@@ -203,7 +203,7 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
                       color: AppColors.success,
                       onTap: () => Navigator.pushNamed(
                         context,
-                        AppRoutes.managerPaymentConfirmation,
+                        AppRoutes.managerNotifications,
                       ),
                     ),
                   ],
@@ -215,10 +215,13 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
                 ),
                 const SizedBox(height: AppSizes.m),
                 if (data.todayOrders.isEmpty)
-                  const ManagerBackendGapCard(
-                    title: 'Chua co don hang hom nay',
-                    message:
-                        'Backend khong tra ve don nao trong ngay hien tai hoac event date chua duoc seed.',
+                  const SizedBox(
+                    height: 220,
+                    child: EmptyState(
+                      title: 'Chua co don hom nay',
+                      description: 'Khong co don nao trong ngay hien tai.',
+                      icon: Icons.event_busy_outlined,
+                    ),
                   )
                 else
                   ...data.todayOrders.map(
@@ -234,10 +237,13 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
                 ),
                 const SizedBox(height: AppSizes.m),
                 if (data.notifications.isEmpty)
-                  const ManagerBackendGapCard(
-                    title: 'Thong bao chua day du nghiep vu',
-                    message:
-                        'Backend da co endpoint notifications nhung hien chua tra feed manager phong phu nhu giao dien mock.',
+                  const SizedBox(
+                    height: 220,
+                    child: EmptyState(
+                      title: 'Chua co thong bao',
+                      description: 'Khong co thong bao nao cho manager.',
+                      icon: Icons.notifications_off_outlined,
+                    ),
                   )
                 else
                   ...data.notifications.take(3).map(
@@ -246,12 +252,34 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
                       child: _AlertCard(notification: item),
                     ),
                   ),
-                if (data.summary.alerts.isEmpty) ...[
+                if (data.summary.alerts.isNotEmpty) ...[
                   const SizedBox(height: AppSizes.s),
-                  const ManagerBackendGapCard(
-                    title: 'Alerts dashboard con thieu',
-                    message:
-                        'GET /dashboard/manager hien tra ve alerts rong, can backend bo sung alert khan theo nghiep vu.',
+                  ...data.summary.alerts.map(
+                    (alert) => Padding(
+                      padding: const EdgeInsets.only(bottom: AppSizes.m),
+                      child: InfoCard(
+                        color: AppColors.errorLight.withValues(alpha: 0.35),
+                        borderColor: AppColors.error.withValues(alpha: 0.2),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.warning_amber_rounded, color: AppColors.error),
+                            const SizedBox(width: AppSizes.m),
+                            Expanded(
+                              child: Text(
+                                alert.type.isEmpty ? 'Alert' : alert.type,
+                                style: const TextStyle(
+                                  color: AppColors.textPrimary,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                            if ((alert.orderId ?? '').isNotEmpty)
+                              StatusChip(label: alert.orderId!),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ],
@@ -353,8 +381,8 @@ class _AlertCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InfoCard(
       onTap: () => Navigator.pushNamed(context, AppRoutes.managerNotifications),
-      color: AppColors.errorLight.withOpacity(0.35),
-      borderColor: AppColors.error.withOpacity(0.2),
+      color: AppColors.errorLight.withValues(alpha: 0.35),
+      borderColor: AppColors.error.withValues(alpha: 0.2),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -362,7 +390,7 @@ class _AlertCard extends StatelessWidget {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: AppColors.error.withOpacity(0.12),
+              color: AppColors.error.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(14),
             ),
             child: const Icon(
@@ -396,7 +424,7 @@ class _AlertCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   notification.content.isEmpty
-                      ? 'Thong bao nay chua co noi dung chi tiet tu backend.'
+                      ? 'Thong bao nay chua co noi dung chi tiet.'
                       : notification.content,
                   style: const TextStyle(
                     color: AppColors.textSecondary,

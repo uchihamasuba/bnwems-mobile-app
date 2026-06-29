@@ -52,7 +52,7 @@ class _ManagerAppShellState extends State<ManagerAppShell> {
           NavigationDestination(
             icon: Icon(Icons.timeline_outlined),
             selectedIcon: Icon(Icons.timeline_rounded, color: AppColors.primary),
-            label: 'Tiến độ',
+            label: 'Tien do',
           ),
           NavigationDestination(
             icon: Icon(Icons.notifications_none_rounded),
@@ -60,17 +60,17 @@ class _ManagerAppShellState extends State<ManagerAppShell> {
               Icons.notifications_active_rounded,
               color: AppColors.primary,
             ),
-            label: 'Thông báo',
+            label: 'Thong bao',
           ),
           NavigationDestination(
             icon: Icon(Icons.fact_check_outlined),
             selectedIcon: Icon(Icons.fact_check_rounded, color: AppColors.primary),
-            label: 'Duyệt nhanh',
+            label: 'Duyet nhanh',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline_rounded),
             selectedIcon: Icon(Icons.person_rounded, color: AppColors.primary),
-            label: 'Tài khoản',
+            label: 'Tai khoan',
           ),
         ],
       ),

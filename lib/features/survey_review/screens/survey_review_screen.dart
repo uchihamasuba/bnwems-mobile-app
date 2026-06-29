@@ -4,16 +4,14 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/custom_app_bar.dart';
+import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/info_card.dart';
 import '../../../core/widgets/loading_state.dart';
-import '../../../core/widgets/primary_button.dart';
-import '../../../core/widgets/secondary_button.dart';
 import '../../../core/widgets/section_title.dart';
 import '../../manager/models/manager_mobile_models.dart';
 import '../../manager/models/manager_route_args.dart';
 import '../../manager/services/manager_mobile_service.dart';
-import '../../manager/widgets/manager_backend_gap_card.dart';
 
 class SurveyReviewScreen extends StatefulWidget {
   const SurveyReviewScreen({super.key});
@@ -50,9 +48,7 @@ class _SurveyReviewScreenState extends State<SurveyReviewScreen> {
     }
 
     if (taskId == null || taskId.isEmpty) {
-      throw Exception(
-        'Khong tim thay survey task de tai bao cao. Backend can tra ve taskId hoac can co API list survey report theo order.',
-      );
+      throw Exception('Khong tim thay survey task de tai bao cao.');
     }
 
     final report = await ManagerMobileService.getSurveyReport(taskId);
@@ -60,16 +56,6 @@ class _SurveyReviewScreenState extends State<SurveyReviewScreen> {
       taskId: taskId,
       orderId: orderId,
       report: report,
-    );
-  }
-
-  void _showMissingApiMessage() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Backend chua co API manager review survey report. Can bo sung PUT /tasks/:id/survey-report/review.',
-        ),
-      ),
     );
   }
 
@@ -89,7 +75,7 @@ class _SurveyReviewScreenState extends State<SurveyReviewScreen> {
           return AppScaffold(
             useSafeArea: true,
             appBar: const CustomAppBar(
-              title: 'Duyet khao sat',
+              title: 'Bao cao khao sat',
               showBackButton: true,
             ),
             body: ErrorState(
@@ -107,52 +93,31 @@ class _SurveyReviewScreenState extends State<SurveyReviewScreen> {
             title: 'Survey task ${data.taskId}',
             showBackButton: true,
           ),
-          body: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(AppSizes.m),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildHeaderCard(data),
-                      AppSizes.spacingL,
-                      const ManagerBackendGapCard(
-                        title: 'Review action chua co API',
-                        message:
-                            'Man nay dang doc survey report that tu GET /tasks/:id/survey-report. Hai nut duyet/yeu cau bo sung chua submit that duoc vi backend chua co endpoint review.',
-                      ),
-                      AppSizes.spacingL,
-                      const SectionTitle(title: 'Ghi chu survey'),
-                      AppSizes.spacingM,
-                      InfoCard(
-                        child: Text(
-                          report.notes.isEmpty ? 'Khong co ghi chu survey.' : report.notes,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: AppColors.textPrimary,
-                            height: 1.4,
-                          ),
-                        ),
-                      ),
-                      AppSizes.spacingL,
-                      const SectionTitle(title: 'Evidence tu survey report'),
-                      AppSizes.spacingM,
-                      _buildPhotosGrid(report),
-                      AppSizes.spacingL,
-                      const SectionTitle(title: 'Thong tin ky thuat con thieu'),
-                      AppSizes.spacingM,
-                      const ManagerBackendGapCard(
-                        title: 'Schema survey report chua du field',
-                        message:
-                            'Area size, entrance width, installation position, transportation condition va construction risk chua duoc backend tra ve tu survey report hien tai.',
-                      ),
-                    ],
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppSizes.m),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildHeaderCard(data),
+                AppSizes.spacingL,
+                const SectionTitle(title: 'Ghi chu survey'),
+                AppSizes.spacingM,
+                InfoCard(
+                  child: Text(
+                    report.notes.isEmpty ? 'Khong co ghi chu survey.' : report.notes,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textPrimary,
+                      height: 1.4,
+                    ),
                   ),
                 ),
-              ),
-              _buildActionPanel(),
-            ],
+                AppSizes.spacingL,
+                const SectionTitle(title: 'Evidence tu survey report'),
+                AppSizes.spacingM,
+                _buildPhotosGrid(report),
+              ],
+            ),
           ),
         );
       },
@@ -178,7 +143,7 @@ class _SurveyReviewScreenState extends State<SurveyReviewScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Order: ${data.orderId ?? 'Chua xac dinh'}',
+                  'Order: ${data.orderId ?? '--'}',
                   style: const TextStyle(
                     fontSize: 13,
                     color: AppColors.textSecondary,
@@ -203,10 +168,12 @@ class _SurveyReviewScreenState extends State<SurveyReviewScreen> {
 
   Widget _buildPhotosGrid(ManagerSurveyReport report) {
     if (report.evidences.isEmpty) {
-      return const InfoCard(
-        child: Text(
-          'Khong co evidence nao trong survey report nay.',
-          style: TextStyle(color: AppColors.textSecondary),
+      return const SizedBox(
+        height: 220,
+        child: EmptyState(
+          title: 'Khong co evidence',
+          description: 'Survey report nay chua co minh chung.',
+          icon: Icons.image_not_supported_outlined,
         ),
       );
     }
@@ -226,7 +193,7 @@ class _SurveyReviewScreenState extends State<SurveyReviewScreen> {
         return ClipRRect(
           borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
           child: Container(
-            color: AppColors.primaryLight.withOpacity(0.6),
+            color: AppColors.primaryLight.withValues(alpha: 0.6),
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -253,41 +220,6 @@ class _SurveyReviewScreenState extends State<SurveyReviewScreen> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildActionPanel() {
-    return Container(
-      padding: const EdgeInsets.all(AppSizes.m),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 10,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: SecondaryButton(
-              text: 'Yeu cau bo sung',
-              icon: Icons.assignment_return_outlined,
-              onPressed: _showMissingApiMessage,
-            ),
-          ),
-          const SizedBox(width: AppSizes.s),
-          Expanded(
-            child: PrimaryButton(
-              text: 'Phe duyet',
-              icon: Icons.check_circle_outline,
-              onPressed: _showMissingApiMessage,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

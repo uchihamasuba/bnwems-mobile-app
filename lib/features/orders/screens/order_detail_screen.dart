@@ -5,17 +5,16 @@ import '../../../core/constants/app_sizes.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/custom_app_bar.dart';
+import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/info_card.dart';
 import '../../../core/widgets/loading_state.dart';
 import '../../../core/widgets/primary_button.dart';
-import '../../../core/widgets/secondary_button.dart';
 import '../../../core/widgets/section_title.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../../manager/models/manager_mobile_models.dart';
 import '../../manager/models/manager_route_args.dart';
 import '../../manager/services/manager_mobile_service.dart';
-import '../../manager/widgets/manager_backend_gap_card.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   const OrderDetailScreen({super.key});
@@ -239,9 +238,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     return Container(
       padding: const EdgeInsets.all(AppSizes.m),
       decoration: BoxDecoration(
-        color: AppColors.warningLight.withOpacity(0.4),
+        color: AppColors.warningLight.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
-        border: Border.all(color: AppColors.warning.withOpacity(0.3)),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -283,24 +282,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
           if (hasPayments)
             _buildActionBannerItem(
-              title: 'Mo man hinh xac nhan thanh toan',
+              title: 'Xem danh sach thanh toan',
               onTap: () => Navigator.pushNamed(
                 context,
                 AppRoutes.managerPaymentConfirmation,
                 arguments: ManagerPaymentRouteArgs(orderId: data.order.orderId),
               ),
             ),
-          _buildActionBannerItem(
-            title: 'Mo yeu cau phat sinh (co the thieu chi tiet do API backend)',
-            onTap: () => Navigator.pushNamed(
-              context,
-              AppRoutes.managerChangeRequestApproval,
-              arguments: ManagerChangeRequestRouteArgs(
-                changeRequestId: '',
-                orderId: data.order.orderId,
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -390,11 +378,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
           const SizedBox(height: 12),
           if (payments.isEmpty)
-            const ManagerBackendGapCard(
-              title: 'Chua co payment record',
-              message:
-                  'GET /orders/:id/payments khong tra du lieu hoac order nay chua co payment duoc confirm.',
-            )
+            const SizedBox(
+              height: 180,
+                    child: EmptyState(
+                      title: 'Chua co payment',
+                      description: 'Khong co giao dich nao cho order nay.',
+                      icon: Icons.receipt_long_outlined,
+                    ),
+                  )
           else
             ...payments.take(3).map(
               (payment) => Padding(
@@ -503,72 +494,65 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     ];
 
     if (items.isEmpty) {
-      return const ManagerBackendGapCard(
-        title: 'Chua co evidence tong hop',
-        message:
-            'Man nay dang ghep survey evidences va payment evidences. Backend chua co endpoint tong hop evidences theo order.',
+      return const SizedBox(
+        height: 220,
+        child: EmptyState(
+          title: 'Chua co minh chung',
+          description: 'Khong co survey evidence hoac payment evidence cho order nay.',
+          icon: Icons.photo_library_outlined,
+        ),
       );
     }
 
-    return Column(
-      children: [
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: items.length > 4 ? 4 : items.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: AppSizes.s,
-            mainAxisSpacing: AppSizes.s,
-            childAspectRatio: 1.5,
-          ),
-          itemBuilder: (context, index) {
-            final item = items[index];
-            return ClipRRect(
-              borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-              child: Container(
-                color: AppColors.primaryLight,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    const Center(
-                      child: Icon(
-                        Icons.image_outlined,
-                        color: AppColors.primary,
-                        size: 20,
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        color: Colors.black.withOpacity(0.6),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 4,
-                          horizontal: 8,
-                        ),
-                        child: Text(
-                          item.fileUrl,
-                          style: const TextStyle(color: Colors.white, fontSize: 10),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ),
-                  ],
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: items.length > 4 ? 4 : items.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: AppSizes.s,
+        mainAxisSpacing: AppSizes.s,
+        childAspectRatio: 1.5,
+      ),
+      itemBuilder: (context, index) {
+        final item = items[index];
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+          child: Container(
+            color: AppColors.primaryLight,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                const Center(
+                  child: Icon(
+                    Icons.image_outlined,
+                    color: AppColors.primary,
+                    size: 20,
+                  ),
                 ),
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: AppSizes.m),
-        const ManagerBackendGapCard(
-          title: 'Evidence van chua day du',
-          message:
-              'Handover, damage/loss, warehouse return va settlement evidence chua co API tong hop cho Manager mobile.',
-        ),
-      ],
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    color: Colors.black.withValues(alpha: 0.6),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 4,
+                      horizontal: 8,
+                    ),
+                    child: Text(
+                      item.fileUrl,
+                      style: const TextStyle(color: Colors.white, fontSize: 10),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -611,7 +595,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 10,
             offset: const Offset(0, -4),
           ),
@@ -628,23 +612,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   context,
                   AppRoutes.managerPaymentConfirmation,
                   arguments: ManagerPaymentRouteArgs(orderId: data.order.orderId),
-                );
-              },
-            ),
-          ),
-          const SizedBox(width: AppSizes.s),
-          Expanded(
-            child: SecondaryButton(
-              text: 'Phat sinh',
-              icon: Icons.published_with_changes_rounded,
-              onPressed: () {
-                Navigator.pushNamed(
-                  context,
-                  AppRoutes.managerChangeRequestApproval,
-                  arguments: ManagerChangeRequestRouteArgs(
-                    changeRequestId: '',
-                    orderId: data.order.orderId,
-                  ),
                 );
               },
             ),

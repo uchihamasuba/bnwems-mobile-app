@@ -155,8 +155,8 @@ class _ManagerTodayScreenState extends State<ManagerTodayScreen> {
                 if (latestProgress != null) ...[
                   const SizedBox(height: AppSizes.m),
                   InfoCard(
-                    borderColor: Colors.red.withOpacity(0.2),
-                    color: Colors.red.withOpacity(0.06),
+                    borderColor: Colors.red.withValues(alpha: 0.2),
+                    color: Colors.red.withValues(alpha: 0.06),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -164,7 +164,7 @@ class _ManagerTodayScreenState extends State<ManagerTodayScreen> {
                           width: 42,
                           height: 42,
                           decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.12),
+                            color: Colors.red.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: const Icon(
@@ -196,7 +196,7 @@ class _ManagerTodayScreenState extends State<ManagerTodayScreen> {
                               ),
                               const SizedBox(height: 6),
                               Text(
-                                latestProgress.currentTask ?? 'Backend chua tra currentTask',
+                                latestProgress.currentTask ?? '--',
                                 style: const TextStyle(fontSize: 12, height: 1.4),
                               ),
                               const SizedBox(height: 8),
@@ -250,8 +250,7 @@ class _ManagerTodayScreenState extends State<ManagerTodayScreen> {
                     height: 320,
                     child: EmptyState(
                       title: 'Khong co du lieu phu hop',
-                      description:
-                          'Backend chua tra ve don nao phu hop voi bo loc hien tai.',
+                      description: 'Khong co don nao phu hop voi bo loc hien tai.',
                       icon: Icons.search_off_rounded,
                     ),
                   )

@@ -33,7 +33,7 @@ class ManagerQuickActionTile extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.14),
+              color: color.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(icon, color: color, size: 22),
@@ -52,7 +52,7 @@ class ManagerQuickActionTile extends StatelessWidget {
           const Row(
             children: [
               Text(
-                'Mở nhanh',
+                'Mo nhanh',
                 style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 11,

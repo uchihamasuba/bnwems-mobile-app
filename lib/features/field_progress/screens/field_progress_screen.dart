@@ -4,6 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/custom_app_bar.dart';
+import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/info_card.dart';
 import '../../../core/widgets/loading_state.dart';
@@ -11,7 +12,6 @@ import '../../../core/widgets/status_chip.dart';
 import '../../manager/models/manager_mobile_models.dart';
 import '../../manager/models/manager_route_args.dart';
 import '../../manager/services/manager_mobile_service.dart';
-import '../../manager/widgets/manager_backend_gap_card.dart';
 
 class FieldProgressScreen extends StatefulWidget {
   const FieldProgressScreen({super.key});
@@ -45,16 +45,19 @@ class _FieldProgressScreenState extends State<FieldProgressScreen> {
       throw Exception('Khong tim thay orderId de tai tien do hien truong.');
     }
 
-    final results = await Future.wait([
-      ManagerMobileService.getOrderDetail(orderId),
-      ManagerMobileService.getTasks(orderId: orderId, limit: 50),
-      ManagerMobileService.getVerificationSummary(orderId),
-    ]);
+    final order = await ManagerMobileService.getOrderDetail(orderId);
+    final tasks = await ManagerMobileService.getTasks(orderId: orderId, limit: 50);
+    ManagerVerificationSummary? verification;
+    try {
+      verification = await ManagerMobileService.getVerificationSummary(orderId);
+    } catch (_) {
+      verification = null;
+    }
 
     return _FieldProgressData(
-      order: results[0] as ManagerOrderDetail,
-      tasks: results[1] as List<ManagerTaskSummary>,
-      verification: results[2] as ManagerVerificationSummary,
+      order: order,
+      tasks: tasks,
+      verification: verification,
     );
   }
 
@@ -104,7 +107,7 @@ class _FieldProgressScreenState extends State<FieldProgressScreen> {
                   vertical: 12,
                   horizontal: AppSizes.m,
                 ),
-                color: AppColors.primaryLight.withOpacity(0.4),
+                color: AppColors.primaryLight.withValues(alpha: 0.4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -144,22 +147,19 @@ class _FieldProgressScreenState extends State<FieldProgressScreen> {
                     ? ListView(
                         padding: const EdgeInsets.all(AppSizes.m),
                         children: const [
-                          ManagerBackendGapCard(
-                            title: 'Chua co timeline chi tiet',
-                            message:
-                                'Backend chua co GET /orders/:id/field-progress. Man nay dang dung GET /tasks?orderId=... de hien thi tien trinh gan dung.',
+                          SizedBox(
+                            height: 240,
+                            child: EmptyState(
+                              title: 'Chua co task',
+                              description: 'Order nay chua co task nao tu backend.',
+                              icon: Icons.assignment_outlined,
+                            ),
                           ),
                         ],
                       )
                     : ListView(
                         padding: const EdgeInsets.all(AppSizes.m),
                         children: [
-                          const ManagerBackendGapCard(
-                            title: 'Timeline dang dung task list that',
-                            message:
-                                'Do backend chua co workflow step timeline theo order, man nay dang hien cac task thuc te cua order de theo doi tien do.',
-                          ),
-                          const SizedBox(height: AppSizes.m),
                           ...List.generate(
                             tasks.length,
                             (index) => _buildTimelineRow(
@@ -167,34 +167,37 @@ class _FieldProgressScreenState extends State<FieldProgressScreen> {
                               index == tasks.length - 1,
                             ),
                           ),
-                          InfoCard(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Verification summary',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.textPrimary,
+                          if (data.verification != null) ...[
+                            const SizedBox(height: AppSizes.m),
+                            InfoCard(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Verification summary',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.textPrimary,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Tasks completed: ${data.verification.tasksCompleted}/${data.verification.totalTasks}',
-                                ),
-                                const SizedBox(height: 4),
-                                Text('Handover: ${data.verification.handoverStatus}'),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Damage/loss recorded: ${data.verification.damageLossRecorded}',
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Verification status: ${data.verification.verificationStatus}',
-                                ),
-                              ],
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Tasks completed: ${data.verification!.tasksCompleted}/${data.verification!.totalTasks}',
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text('Handover: ${data.verification!.handoverStatus}'),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Damage/loss recorded: ${data.verification!.damageLossRecorded}',
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Verification status: ${data.verification!.verificationStatus}',
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
               ),
@@ -227,7 +230,7 @@ class _FieldProgressScreenState extends State<FieldProgressScreen> {
                 Expanded(
                   child: Container(
                     width: 2,
-                    color: stepColor.withOpacity(0.5),
+                    color: stepColor.withValues(alpha: 0.5),
                   ),
                 ),
             ],
@@ -237,8 +240,8 @@ class _FieldProgressScreenState extends State<FieldProgressScreen> {
             child: Padding(
               padding: const EdgeInsets.only(bottom: 24.0),
               child: InfoCard(
-                borderColor: stepColor.withOpacity(0.35),
-                color: stepColor.withOpacity(0.05),
+                borderColor: stepColor.withValues(alpha: 0.35),
+                color: stepColor.withValues(alpha: 0.05),
                 padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -338,5 +341,5 @@ class _FieldProgressData {
 
   final ManagerOrderDetail order;
   final List<ManagerTaskSummary> tasks;
-  final ManagerVerificationSummary verification;
+  final ManagerVerificationSummary? verification;
 }
