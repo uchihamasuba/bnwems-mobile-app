@@ -114,7 +114,7 @@ class ApiService {
     throw ApiException(
       statusCode: 0,
       message:
-          'Khong ket noi duoc backend tren cong 3000 hoac 3001. Hay kiem tra server.',
+          'Không kết nối được backend trên cổng 3000 hoặc 3001. Hãy kiểm tra server.',
     );
   }
 
@@ -132,8 +132,8 @@ class ApiService {
       statusCode: response.statusCode,
       message: data['message'] as String? ??
           (response.statusCode == 401
-              ? 'Phien dang nhap da het han. Vui long dang nhap lai.'
-              : 'Loi khong xac dinh.'),
+              ? 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.'
+              : 'Lỗi không xác định.'),
     );
   }
 }

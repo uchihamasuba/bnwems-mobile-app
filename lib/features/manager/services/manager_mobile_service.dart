@@ -25,7 +25,8 @@ class ManagerMobileService {
     final response = await ApiService.get('/notifications?$query');
     final data = response['data'] as List<dynamic>? ?? const [];
     return data
-        .map((item) => ManagerNotificationItem.fromJson(item as Map<String, dynamic>))
+        .map((item) =>
+            ManagerNotificationItem.fromJson(item as Map<String, dynamic>))
         .toList();
   }
 
@@ -53,7 +54,8 @@ class ManagerMobileService {
     final response = await ApiService.get('/orders?${queryParts.join('&')}');
     final data = response['data'] as List<dynamic>? ?? const [];
     return data
-        .map((item) => ManagerOrderSummary.fromJson(item as Map<String, dynamic>))
+        .map((item) =>
+            ManagerOrderSummary.fromJson(item as Map<String, dynamic>))
         .toList();
   }
 
@@ -65,11 +67,39 @@ class ManagerMobileService {
   }
 
   static Future<List<ManagerOrderSummary>> getFieldProgressFeed() async {
+    // Manager-wide field progress feed from backend.
     final response = await ApiService.get('/orders/field-progress');
     final data = response['data'] as List<dynamic>? ?? const [];
-    return data
-        .map((item) => ManagerOrderSummary.fromJson(item as Map<String, dynamic>))
+    final feed = data
+        .map((item) =>
+            ManagerOrderSummary.fromJson(item as Map<String, dynamic>))
         .toList();
+
+    if (feed.isEmpty) {
+      return feed;
+    }
+
+    final orders = await getOrders(limit: 100);
+    final ordersById = {
+      for (final order in orders) order.orderId: order,
+    };
+
+    return feed.map((item) {
+      final order = ordersById[item.orderId];
+      if (order == null) {
+        return item;
+      }
+      return ManagerOrderSummary(
+        orderId: item.orderId,
+        orderNumber: order.orderNumber,
+        status: item.status.isNotEmpty ? item.status : order.status,
+        customerId: order.customerId,
+        eventStartDate: order.eventStartDate,
+        venueAddress: order.venueAddress,
+        currentTask: item.currentTask,
+        lastUpdate: item.lastUpdate,
+      );
+    }).toList();
   }
 
   static Future<List<ManagerTaskSummary>> getTasks({
@@ -90,11 +120,13 @@ class ManagerMobileService {
     final response = await ApiService.get('/tasks?${queryParts.join('&')}');
     final data = response['data'] as List<dynamic>? ?? const [];
     return data
-        .map((item) => ManagerTaskSummary.fromJson(item as Map<String, dynamic>))
+        .map(
+            (item) => ManagerTaskSummary.fromJson(item as Map<String, dynamic>))
         .toList();
   }
 
-  static Future<ManagerTaskSummary?> getSurveyTaskByOrder(String orderId) async {
+  static Future<ManagerTaskSummary?> getSurveyTaskByOrder(
+      String orderId) async {
     final tasks = await getTasks(orderId: orderId, page: 1, limit: 50);
 
     for (final task in tasks) {
@@ -119,12 +151,52 @@ class ManagerMobileService {
   ) async {
     final response = await ApiService.get('/orders/$orderId/payments');
     final data = response['data'] as List<dynamic>? ?? const [];
-    return data
-        .map((item) => ManagerPaymentRecord.fromJson(item as Map<String, dynamic>))
+    final payments = data
+        .map((item) =>
+            ManagerPaymentRecord.fromJson(item as Map<String, dynamic>))
         .toList();
+
+    return Future.wait(
+      payments.map((payment) async {
+        final requestId = payment.paymentRequestId;
+        if (requestId == null || requestId.isEmpty) {
+          return payment;
+        }
+
+        try {
+          final detail = await getPaymentRequestDetail(requestId);
+          return ManagerPaymentRecord(
+            paymentId: payment.paymentId,
+            paymentRequestId: payment.paymentRequestId,
+            amount: payment.amount,
+            paymentType: detail.paymentType.isNotEmpty
+                ? detail.paymentType
+                : payment.paymentType,
+            paymentMethod: detail.paymentMethod.isNotEmpty
+                ? detail.paymentMethod
+                : payment.paymentMethod,
+            status: payment.status,
+            paymentDate: payment.paymentDate,
+            evidences: payment.evidences,
+          );
+        } catch (_) {
+          return payment;
+        }
+      }),
+    );
   }
 
-  static Future<ManagerPaymentRecord?> getLatestPaymentByOrder(String orderId) async {
+  static Future<ManagerPaymentRecord> getPaymentRequestDetail(
+    String paymentRequestId,
+  ) async {
+    final response = await ApiService.get('/payment-requests/$paymentRequestId');
+    return ManagerPaymentRecord.fromJson(
+      response['data'] as Map<String, dynamic>,
+    );
+  }
+
+  static Future<ManagerPaymentRecord?> getLatestPaymentByOrder(
+      String orderId) async {
     final payments = await getPaymentsByOrder(orderId);
     if (payments.isEmpty) {
       return null;
@@ -133,11 +205,11 @@ class ManagerMobileService {
   }
 
   static Future<void> confirmPayment({
-    required String paymentId,
+    required String paymentRequestId,
     required String status,
     String? evidenceUrl,
   }) async {
-    await ApiService.put('/payments/$paymentId/confirm', {
+    await ApiService.put('/payment-requests/$paymentRequestId/confirm', {
       'status': status,
       if (evidenceUrl != null && evidenceUrl.isNotEmpty)
         'evidenceUrl': evidenceUrl,
@@ -162,7 +234,8 @@ class ManagerMobileService {
   static Future<ManagerVerificationSummary> getVerificationSummary(
     String orderId,
   ) async {
-    final response = await ApiService.get('/reports/verification?orderId=$orderId');
+    final response =
+        await ApiService.get('/reports/verification?orderId=$orderId');
     return ManagerVerificationSummary.fromJson(
       response['data'] as Map<String, dynamic>,
     );
@@ -172,24 +245,113 @@ class ManagerMobileService {
     required String orderId,
     String? surveyTaskId,
   }) async {
-    final payments = await getPaymentsByOrder(orderId);
     final surveyReport = surveyTaskId == null || surveyTaskId.isEmpty
         ? null
         : await getSurveyReport(surveyTaskId);
+    final response = await ApiService.get('/orders/$orderId/evidences');
+    final rawEvidences = response['data'] as List<dynamic>? ?? const [];
+    final surveyEvidences = <ManagerEvidenceAsset>[];
+    final paymentEvidences = <ManagerEvidenceAsset>[];
+
+    for (final item in rawEvidences.whereType<Map<String, dynamic>>()) {
+      final asset = ManagerEvidenceAsset.fromJson(item);
+      final refType = (item['refType'] ?? '').toString().toLowerCase();
+      if (refType.contains('survey')) {
+        surveyEvidences.add(asset);
+      } else if (refType.contains('payment')) {
+        paymentEvidences.add(asset);
+      }
+    }
 
     return ManagerEvidenceBundle(
       orderId: orderId,
-      surveyEvidences: surveyReport?.evidences ?? const [],
-      paymentEvidences: payments.expand((payment) => payment.evidences).toList(),
+      surveyEvidences: surveyEvidences.isNotEmpty
+          ? surveyEvidences
+          : surveyReport?.evidences ?? const [],
+      paymentEvidences: paymentEvidences,
       operationNotes: surveyReport != null && surveyReport.notes.isNotEmpty
           ? [surveyReport.notes]
           : const [],
     );
   }
 
+  static Future<List<ManagerApprovalItem>> getManagerApprovals() async {
+    final response = await ApiService.get('/manager/approvals');
+    final data = response['data'] as Map<String, dynamic>? ?? const {};
+    final approvals = <ManagerApprovalItem>[];
+
+    final changeRequests =
+        data['changeRequests'] as List<dynamic>? ?? const <dynamic>[];
+    for (final item in changeRequests.whereType<Map<String, dynamic>>()) {
+      final changeRequestId =
+          (item['changeRequestId'] ?? item['id'] ?? '').toString();
+      if (changeRequestId.isEmpty) {
+        continue;
+      }
+      approvals.add(
+        ManagerApprovalItem(
+          approvalType: 'change_request',
+          referenceId: changeRequestId,
+          orderId: _toNullableString(item['orderId']),
+          title: 'Change request $changeRequestId',
+          subtitle:
+              (item['reason'] ?? item['noteFromLeader'] ?? '').toString(),
+          status: _toNullableString(item['status']),
+          createdAt: _toDateTime(item['createdAt']),
+        ),
+      );
+    }
+
+    final surveyReports =
+        data['surveyReports'] as List<dynamic>? ?? const <dynamic>[];
+    for (final item in surveyReports.whereType<Map<String, dynamic>>()) {
+      final surveyReportId =
+          (item['surveyReportId'] ?? item['id'] ?? '').toString();
+      if (surveyReportId.isEmpty) {
+        continue;
+      }
+      approvals.add(
+        ManagerApprovalItem(
+          approvalType: 'survey_report',
+          referenceId: surveyReportId,
+          orderId: _toNullableString(item['orderId']),
+          taskId: _toNullableString(item['workTaskId']),
+          title: 'Survey report $surveyReportId',
+          subtitle:
+              (item['siteCondition'] ?? item['reviewNote'] ?? '').toString(),
+          status: _toNullableString(item['status']),
+          createdAt: _toDateTime(item['createdAt']),
+        ),
+      );
+    }
+
+    approvals.sort((a, b) {
+      final aTime = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final bTime = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      return bTime.compareTo(aTime);
+    });
+
+    return approvals;
+  }
+
   static String _formatDate(DateTime value) {
     final month = value.month.toString().padLeft(2, '0');
     final day = value.day.toString().padLeft(2, '0');
     return '${value.year}-$month-$day';
+  }
+
+  static String? _toNullableString(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+    final stringValue = value.toString();
+    return stringValue.isEmpty ? null : stringValue;
+  }
+
+  static DateTime? _toDateTime(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+    return DateTime.tryParse(value.toString());
   }
 }

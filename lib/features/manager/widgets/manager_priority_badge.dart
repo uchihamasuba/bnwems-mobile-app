@@ -28,7 +28,8 @@ class ManagerPriorityBadge extends StatelessWidget {
       color = AppColors.warning;
       background = AppColors.warningLight;
       icon = Icons.timelapse_rounded;
-    } else if (normalized.contains('low') || normalized.contains('hoàn thành')) {
+    } else if (normalized.contains('low') ||
+        normalized.contains('hoàn thành')) {
       color = AppColors.success;
       background = AppColors.successLight;
       icon = Icons.check_circle_rounded;

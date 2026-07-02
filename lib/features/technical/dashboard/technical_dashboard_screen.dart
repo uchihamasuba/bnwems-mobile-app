@@ -17,7 +17,8 @@ class TechnicalDashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final myTasks = MockData.tasks
-        .where((t) => t.assignedRole == UserRole.technical && t.status != 'completed')
+        .where((t) =>
+            t.assignedRole == UserRole.technical && t.status != 'completed')
         .toList();
 
     return AppScaffold(
@@ -49,12 +50,10 @@ class TechnicalDashboardScreen extends StatelessWidget {
             AppSizes.spacingM,
             _buildTaskSummaryBanner(myTasks.length),
             AppSizes.spacingL,
-
             const SectionTitle(title: 'Nhiệm vụ thi công hiện trường'),
             AppSizes.spacingM,
             _buildQuickActionsGrid(context),
             AppSizes.spacingL,
-
             const SectionTitle(title: 'Checklist cần xử lý gấp'),
             AppSizes.spacingM,
             if (myTasks.isEmpty)
@@ -84,7 +83,8 @@ class TechnicalDashboardScreen extends StatelessWidget {
         CircleAvatar(
           radius: 24,
           backgroundColor: AppColors.primaryLight,
-          child: const Icon(Icons.construction_rounded, color: AppColors.primary, size: 24),
+          child: const Icon(Icons.construction_rounded,
+              color: AppColors.primary, size: 24),
         ),
         const SizedBox(width: AppSizes.m),
         const Expanded(
@@ -93,7 +93,10 @@ class TechnicalDashboardScreen extends StatelessWidget {
             children: [
               Text(
                 'Xin chào, Nguyễn Văn Minh!',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary),
               ),
               Text(
                 'Kỹ thuật viên / Thợ sự kiện',
@@ -116,7 +119,8 @@ class TechnicalDashboardScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.engineering_outlined, color: AppColors.primary, size: 24),
+          const Icon(Icons.engineering_outlined,
+              color: AppColors.primary, size: 24),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -142,17 +146,32 @@ class TechnicalDashboardScreen extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       childAspectRatio: 1.4,
       children: [
-        _buildActionCard(context, 'Soạn Đồ Xuất Kho', Icons.inventory_outlined, AppColors.info, AppRoutes.technicalPickList),
-        _buildActionCard(context, 'Báo Cáo Vận Chuyển', Icons.local_shipping_outlined, AppColors.primary, AppRoutes.technicalTransportation),
-        _buildActionCard(context, 'Thi Công Lắp Ráp', Icons.build_outlined, AppColors.warning, AppRoutes.technicalInstallationChecklist),
-        _buildActionCard(context, 'Tháo Dỡ Thu Hồi', Icons.backspace_outlined, AppColors.error, AppRoutes.technicalCollectionChecklist),
-        _buildActionCard(context, 'Hoàn Trả Kho', Icons.warehouse_outlined, AppColors.success, AppRoutes.technicalWarehouseReturn),
-        _buildActionCard(context, 'Nộp Ảnh Thực Địa', Icons.add_a_photo_outlined, AppColors.secondary, AppRoutes.technicalEvidenceUpload),
+        _buildActionCard(context, 'Soạn Đồ Xuất Kho', Icons.inventory_outlined,
+            AppColors.info, AppRoutes.technicalPickList),
+        _buildActionCard(
+            context,
+            'Báo Cáo Vận Chuyển',
+            Icons.local_shipping_outlined,
+            AppColors.primary,
+            AppRoutes.technicalTransportation),
+        _buildActionCard(context, 'Thi Công Lắp Ráp', Icons.build_outlined,
+            AppColors.warning, AppRoutes.technicalInstallationChecklist),
+        _buildActionCard(context, 'Tháo Dỡ Thu Hồi', Icons.backspace_outlined,
+            AppColors.error, AppRoutes.technicalCollectionChecklist),
+        _buildActionCard(context, 'Hoàn Trả Kho', Icons.warehouse_outlined,
+            AppColors.success, AppRoutes.technicalWarehouseReturn),
+        _buildActionCard(
+            context,
+            'Nộp Ảnh Thực Địa',
+            Icons.add_a_photo_outlined,
+            AppColors.secondary,
+            AppRoutes.technicalEvidenceUpload),
       ],
     );
   }
 
-  Widget _buildActionCard(BuildContext context, String title, IconData icon, Color color, String route) {
+  Widget _buildActionCard(BuildContext context, String title, IconData icon,
+      Color color, String route) {
     return InfoCard(
       borderColor: color.withOpacity(0.2),
       onTap: () => Navigator.pushNamed(context, route),
@@ -162,12 +181,16 @@ class TechnicalDashboardScreen extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+            decoration: BoxDecoration(
+                color: color.withOpacity(0.1), shape: BoxShape.circle),
             child: Icon(icon, color: color, size: 18),
           ),
           Text(
             title,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textPrimary),
+            style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: AppColors.textPrimary),
           ),
         ],
       ),
@@ -178,7 +201,8 @@ class TechnicalDashboardScreen extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: AppSizes.s),
       child: InfoCard(
-        onTap: () => Navigator.pushNamed(context, AppRoutes.technicalTaskDetail, arguments: task.id),
+        onTap: () => Navigator.pushNamed(context, AppRoutes.technicalTaskDetail,
+            arguments: task.id),
         child: Row(
           children: [
             Container(
@@ -200,21 +224,24 @@ class TechnicalDashboardScreen extends StatelessWidget {
                 children: [
                   Text(
                     task.taskName,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 13),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
                   Text(
                     'Đơn: ${task.orderCode} - Nơi: ${task.location}',
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                    style: const TextStyle(
+                        color: AppColors.textSecondary, fontSize: 11),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppColors.textLight),
+            const Icon(Icons.arrow_forward_ios_rounded,
+                size: 12, color: AppColors.textLight),
           ],
         ),
       ),

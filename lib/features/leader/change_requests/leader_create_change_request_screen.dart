@@ -12,18 +12,23 @@ class LeaderCreateChangeRequestScreen extends StatefulWidget {
   const LeaderCreateChangeRequestScreen({super.key});
 
   @override
-  State<LeaderCreateChangeRequestScreen> createState() => _LeaderCreateChangeRequestScreenState();
+  State<LeaderCreateChangeRequestScreen> createState() =>
+      _LeaderCreateChangeRequestScreenState();
 }
 
-class _LeaderCreateChangeRequestScreenState extends State<LeaderCreateChangeRequestScreen> {
+class _LeaderCreateChangeRequestScreenState
+    extends State<LeaderCreateChangeRequestScreen> {
   final _formKey = GlobalKey<FormState>();
   String _selectedOrder = 'ORD-2026-001';
   String _requestType = 'Add';
-  final _itemController = TextEditingController(text: 'Dây thừng gai treo đèn Par ngoài trời');
+  final _itemController =
+      TextEditingController(text: 'Dây thừng gai treo đèn Par ngoài trời');
   final _qtyController = TextEditingController(text: '5');
-  final _reasonController = TextEditingController(text: 'Khách muốn căng thêm đèn dây gai để tạo cảm giác lung linh hơn');
+  final _reasonController = TextEditingController(
+      text: 'Khách muốn căng thêm đèn dây gai để tạo cảm giác lung linh hơn');
   final _costController = TextEditingController(text: '500000.0');
-  final _availabilityController = TextEditingController(text: 'Sẵn có tại Kho Q7 (còn 12 cuộn)');
+  final _availabilityController =
+      TextEditingController(text: 'Sẵn có tại Kho Q7 (còn 12 cuộn)');
   bool _isSubmitting = false;
 
   void _submitRequest() {
@@ -44,14 +49,17 @@ class _LeaderCreateChangeRequestScreenState extends State<LeaderCreateChangeRequ
             reason: _reasonController.text,
             costImpact: double.tryParse(_costController.text) ?? 0.0,
             inventoryAvailability: _availabilityController.text,
-            noteFromLeader: 'Thợ lắp ráp đang đợi lệnh thi công sau khi Manager duyệt',
+            noteFromLeader:
+                'Thợ lắp ráp đang đợi lệnh thi công sau khi Manager duyệt',
             evidenceUrls: const ['cr_rope_photo'],
             approvalStatus: 'Pending',
           ),
         );
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Yêu cầu đổi thiết bị đã gửi đến Manager thành công!')),
+          const SnackBar(
+              content:
+                  Text('Yêu cầu đổi thiết bị đã gửi đến Manager thành công!')),
         );
         Navigator.pop(context);
       });
@@ -77,25 +85,33 @@ class _LeaderCreateChangeRequestScreenState extends State<LeaderCreateChangeRequ
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Order
-                    const Text('Chọn đơn hàng sự kiện:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    const Text('Chọn đơn hàng sự kiện:',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 13)),
                     const SizedBox(height: 6),
                     _buildOrderDropdown(),
                     AppSizes.spacingL,
 
                     // Request Type
-                    const Text('Loại điều chỉnh:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    const Text('Loại điều chỉnh:',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 13)),
                     const SizedBox(height: 6),
                     _buildTypeDropdown(),
                     AppSizes.spacingL,
 
                     // Material Spec
-                    const Text('Thông số thiết bị / vật tư:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    const Text('Thông số thiết bị / vật tư:',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 13)),
                     const SizedBox(height: 6),
                     _buildItemSpecsCard(),
                     AppSizes.spacingL,
 
                     // Details
-                    const Text('Lý do & Tác động tài chính:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    const Text('Lý do & Tác động tài chính:',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 13)),
                     const SizedBox(height: 6),
                     _buildFinancialCard(),
                     const SizedBox(height: AppSizes.xxl),
@@ -115,7 +131,8 @@ class _LeaderCreateChangeRequestScreenState extends State<LeaderCreateChangeRequ
       child: DropdownButtonFormField<String>(
         isExpanded: true,
         value: _selectedOrder,
-        style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+            color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         items: MockData.orders.map((order) {
           return DropdownMenuItem(
             value: order.id,
@@ -145,12 +162,25 @@ class _LeaderCreateChangeRequestScreenState extends State<LeaderCreateChangeRequ
       child: DropdownButtonFormField<String>(
         isExpanded: true,
         value: _requestType,
-        style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+            color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         items: const [
-          DropdownMenuItem(value: 'Add', child: Text('Thêm thiết bị (ADD)', overflow: TextOverflow.ellipsis)),
-          DropdownMenuItem(value: 'Remove', child: Text('Bớt thiết bị (REMOVE)', overflow: TextOverflow.ellipsis)),
-          DropdownMenuItem(value: 'Replace', child: Text('Thay thế thiết bị (REPLACE)', overflow: TextOverflow.ellipsis)),
-          DropdownMenuItem(value: 'Change Plan', child: Text('Đổi phương án setup (CHANGE PLAN)', overflow: TextOverflow.ellipsis)),
+          DropdownMenuItem(
+              value: 'Add',
+              child:
+                  Text('Thêm thiết bị (ADD)', overflow: TextOverflow.ellipsis)),
+          DropdownMenuItem(
+              value: 'Remove',
+              child: Text('Bớt thiết bị (REMOVE)',
+                  overflow: TextOverflow.ellipsis)),
+          DropdownMenuItem(
+              value: 'Replace',
+              child: Text('Thay thế thiết bị (REPLACE)',
+                  overflow: TextOverflow.ellipsis)),
+          DropdownMenuItem(
+              value: 'Change Plan',
+              child: Text('Đổi phương án setup (CHANGE PLAN)',
+                  overflow: TextOverflow.ellipsis)),
         ],
         onChanged: (val) {
           if (val != null) {
@@ -173,20 +203,25 @@ class _LeaderCreateChangeRequestScreenState extends State<LeaderCreateChangeRequ
         children: [
           TextFormField(
             controller: _itemController,
-            decoration: const InputDecoration(labelText: 'Tên thiết bị / Dịch vụ phát sinh'),
-            validator: (val) => val == null || val.isEmpty ? 'Không để trống tên thiết bị' : null,
+            decoration: const InputDecoration(
+                labelText: 'Tên thiết bị / Dịch vụ phát sinh'),
+            validator: (val) => val == null || val.isEmpty
+                ? 'Không để trống tên thiết bị'
+                : null,
           ),
           const SizedBox(height: AppSizes.m),
           TextFormField(
             controller: _qtyController,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(labelText: 'Số lượng'),
-            validator: (val) => val == null || val.isEmpty ? 'Không để trống số lượng' : null,
+            validator: (val) =>
+                val == null || val.isEmpty ? 'Không để trống số lượng' : null,
           ),
           const SizedBox(height: AppSizes.m),
           TextFormField(
             controller: _availabilityController,
-            decoration: const InputDecoration(labelText: 'Khả dụng kho (nếu nắm được)'),
+            decoration:
+                const InputDecoration(labelText: 'Khả dụng kho (nếu nắm được)'),
           ),
         ],
       ),
@@ -204,14 +239,17 @@ class _LeaderCreateChangeRequestScreenState extends State<LeaderCreateChangeRequ
               labelText: 'Chi phí phát sinh ước tính (VNĐ)',
               prefixText: 'đ ',
             ),
-            validator: (val) => val == null || val.isEmpty ? 'Nhập chi phí phát sinh' : null,
+            validator: (val) =>
+                val == null || val.isEmpty ? 'Nhập chi phí phát sinh' : null,
           ),
           const SizedBox(height: AppSizes.m),
           TextFormField(
             controller: _reasonController,
             maxLines: 3,
-            decoration: const InputDecoration(labelText: 'Lý do thay đổi/phát sinh'),
-            validator: (val) => val == null || val.isEmpty ? 'Nhập lý do thay đổi' : null,
+            decoration:
+                const InputDecoration(labelText: 'Lý do thay đổi/phát sinh'),
+            validator: (val) =>
+                val == null || val.isEmpty ? 'Nhập lý do thay đổi' : null,
           ),
         ],
       ),
@@ -224,7 +262,10 @@ class _LeaderCreateChangeRequestScreenState extends State<LeaderCreateChangeRequ
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, -4)),
+          BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 10,
+              offset: const Offset(0, -4)),
         ],
       ),
       child: Row(

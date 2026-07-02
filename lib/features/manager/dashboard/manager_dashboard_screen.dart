@@ -96,9 +96,9 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
               padding: const EdgeInsets.all(AppSizes.m),
               children: [
                 ManagerAppHeader(
-                  title: 'Xin chao, Manager',
+                  title: 'Xin chào, Quản lý',
                   subtitle:
-                      'Hom nay co ${data.todayOrders.length} don can theo doi va $unreadNotifications thong bao chua doc.',
+                      'Hôm nay có ${data.todayOrders.length} đơn cần theo dõi và $unreadNotifications thông báo chưa đọc.',
                   trailing: Container(
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.14),
@@ -116,7 +116,8 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
                           (route) => false,
                         );
                       },
-                      icon: const Icon(Icons.logout_rounded, color: Colors.white),
+                      icon:
+                          const Icon(Icons.logout_rounded, color: Colors.white),
                     ),
                   ),
                 ),
@@ -130,28 +131,28 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
                   physics: const NeverScrollableScrollPhysics(),
                   children: [
                     ManagerStatisticCard(
-                      label: 'Don dang xu ly',
+                      label: 'Đơn đang xử lý',
                       value: '${data.summary.ordersInProgress}',
                       icon: Icons.event_note_rounded,
                       color: AppColors.primary,
                       highlight: data.summary.ordersInProgress > 0,
                     ),
                     ManagerStatisticCard(
-                      label: 'Task hom nay',
+                      label: 'Task hôm nay',
                       value: '${data.summary.tasksToday}',
                       icon: Icons.play_circle_outline_rounded,
                       color: AppColors.info,
                       highlight: data.summary.tasksToday > 0,
                     ),
                     ManagerStatisticCard(
-                      label: 'Alerts',
+                      label: 'Cảnh báo',
                       value: '${data.summary.alerts.length}',
                       icon: Icons.crisis_alert_rounded,
                       color: AppColors.error,
                       highlight: data.summary.alerts.isNotEmpty,
                     ),
                     ManagerStatisticCard(
-                      label: 'Phat sinh cho duyet',
+                      label: 'Phát sinh chờ duyệt',
                       value: '${data.summary.pendingChangeRequests}',
                       icon: Icons.fact_check_outlined,
                       color: AppColors.warning,
@@ -161,8 +162,9 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
                 ),
                 const SizedBox(height: AppSizes.l),
                 const ManagerSectionHeader(
-                  title: 'Loi tat dieu hanh',
-                  subtitle: 'Mo nhanh cac khu vuc Manager dang dung du lieu API that.',
+                  title: 'Lối tắt điều hành',
+                  subtitle:
+                      'Mở nhanh các tác vụ quản lý trọng tâm, không lặp lại danh sách đơn bên dưới.',
                 ),
                 const SizedBox(height: AppSizes.m),
                 GridView.count(
@@ -174,13 +176,7 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
                   childAspectRatio: 1.25,
                   children: [
                     ManagerQuickActionTile(
-                      label: 'Don hom nay',
-                      icon: Icons.today_rounded,
-                      color: AppColors.primary,
-                      onTap: () => Navigator.pushNamed(context, AppRoutes.managerToday),
-                    ),
-                    ManagerQuickActionTile(
-                      label: 'Tien do',
+                      label: 'Tiến độ hiện trường',
                       icon: Icons.timeline_rounded,
                       color: AppColors.info,
                       onTap: () => Navigator.pushNamed(
@@ -189,37 +185,46 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
                       ),
                     ),
                     ManagerQuickActionTile(
-                      label: 'Phat sinh',
+                      label: 'Duyệt phát sinh',
                       icon: Icons.published_with_changes_rounded,
                       color: AppColors.warning,
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        AppRoutes.managerChangeRequestApproval,
+                      ),
+                    ),
+                    ManagerQuickActionTile(
+                      label: 'Thông báo khẩn',
+                      icon: Icons.notifications_active_rounded,
+                      color: AppColors.error,
                       onTap: () => Navigator.pushNamed(
                         context,
                         AppRoutes.managerNotifications,
                       ),
                     ),
                     ManagerQuickActionTile(
-                      label: 'Thanh toan',
+                      label: 'Xác nhận thanh toán',
                       icon: Icons.payments_outlined,
                       color: AppColors.success,
                       onTap: () => Navigator.pushNamed(
                         context,
-                        AppRoutes.managerNotifications,
+                        AppRoutes.managerPaymentConfirmation,
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: AppSizes.l),
                 const ManagerSectionHeader(
-                  title: 'Don hom nay',
-                  subtitle: 'Danh sach lay tu GET /orders theo ngay hien tai.',
+                  title: 'Đơn hôm nay',
+                  subtitle: 'Danh sách lấy từ GET /orders theo ngày hiện tại.',
                 ),
                 const SizedBox(height: AppSizes.m),
                 if (data.todayOrders.isEmpty)
                   const SizedBox(
                     height: 220,
                     child: EmptyState(
-                      title: 'Chua co don hom nay',
-                      description: 'Khong co don nao trong ngay hien tai.',
+                      title: 'Chưa có đơn hôm nay',
+                      description: 'Không có đơn nào trong ngày hiện tại.',
                       icon: Icons.event_busy_outlined,
                     ),
                   )
@@ -232,26 +237,26 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
                   ),
                 const SizedBox(height: AppSizes.s),
                 const ManagerSectionHeader(
-                  title: 'Thong bao moi nhat',
-                  subtitle: 'Nguon du lieu tu GET /notifications.',
+                  title: 'Thông báo mới nhất',
+                  subtitle: 'Nguồn dữ liệu từ GET /notifications.',
                 ),
                 const SizedBox(height: AppSizes.m),
                 if (data.notifications.isEmpty)
                   const SizedBox(
                     height: 220,
                     child: EmptyState(
-                      title: 'Chua co thong bao',
-                      description: 'Khong co thong bao nao cho manager.',
+                      title: 'Chưa có thông báo',
+                      description: 'Không có thông báo nào cho quản lý.',
                       icon: Icons.notifications_off_outlined,
                     ),
                   )
                 else
                   ...data.notifications.take(3).map(
-                    (item) => Padding(
-                      padding: const EdgeInsets.only(bottom: AppSizes.m),
-                      child: _AlertCard(notification: item),
-                    ),
-                  ),
+                        (item) => Padding(
+                          padding: const EdgeInsets.only(bottom: AppSizes.m),
+                          child: _AlertCard(notification: item),
+                        ),
+                      ),
                 if (data.summary.alerts.isNotEmpty) ...[
                   const SizedBox(height: AppSizes.s),
                   ...data.summary.alerts.map(
@@ -262,11 +267,14 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
                         borderColor: AppColors.error.withValues(alpha: 0.2),
                         child: Row(
                           children: [
-                            const Icon(Icons.warning_amber_rounded, color: AppColors.error),
+                            const Icon(
+                              Icons.warning_amber_rounded,
+                              color: AppColors.error,
+                            ),
                             const SizedBox(width: AppSizes.m),
                             Expanded(
                               child: Text(
-                                alert.type.isEmpty ? 'Alert' : alert.type,
+                                alert.type.isEmpty ? 'Cảnh báo' : alert.type,
                                 style: const TextStyle(
                                   color: AppColors.textPrimary,
                                   fontSize: 13,
@@ -339,7 +347,7 @@ class _DashboardOrderCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            order.venueAddress ?? 'Chua co dia diem',
+            order.venueAddress ?? 'Chưa có địa điểm',
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,
@@ -351,7 +359,9 @@ class _DashboardOrderCard extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              StatusChip(label: order.status.isEmpty ? 'Unknown' : order.status),
+              StatusChip(
+                label: order.status.isEmpty ? 'Chưa xác định' : order.status,
+              ),
               if (order.currentTask != null && order.currentTask!.isNotEmpty)
                 StatusChip(label: order.currentTask!),
             ],
@@ -359,8 +369,8 @@ class _DashboardOrderCard extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             order.eventStartDate == null
-                ? 'Chua co ngay to chuc'
-                : 'Ngay to chuc: ${_formatDate(order.eventStartDate!)}',
+                ? 'Chưa có ngày tổ chức'
+                : 'Ngày tổ chức: ${_formatDate(order.eventStartDate!)}',
             style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 12,
@@ -416,7 +426,7 @@ class _AlertCard extends StatelessWidget {
                       ),
                     ),
                     const ManagerPriorityBadge(
-                      label: 'Moi',
+                      label: 'Mới',
                       compact: true,
                     ),
                   ],
@@ -424,7 +434,7 @@ class _AlertCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   notification.content.isEmpty
-                      ? 'Thong bao nay chua co noi dung chi tiet.'
+                      ? 'Thông báo này chưa có nội dung chi tiết.'
                       : notification.content,
                   style: const TextStyle(
                     color: AppColors.textSecondary,
@@ -444,7 +454,11 @@ class _AlertCard extends StatelessWidget {
                       ),
                     ),
                     const Spacer(),
-                    StatusChip(label: notification.type.isEmpty ? 'General' : notification.type),
+                    StatusChip(
+                      label: notification.type.isEmpty
+                          ? 'Chung'
+                          : notification.type,
+                    ),
                   ],
                 ),
               ],

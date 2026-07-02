@@ -26,7 +26,8 @@ class ManagerStatisticCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InfoCard(
       color: highlight ? color.withValues(alpha: 0.08) : Colors.white,
-      borderColor: highlight ? color.withValues(alpha: 0.28) : AppColors.divider,
+      borderColor:
+          highlight ? color.withValues(alpha: 0.28) : AppColors.divider,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -49,7 +50,9 @@ class ManagerStatisticCard extends StatelessWidget {
                   vertical: 3,
                 ),
                 decoration: BoxDecoration(
-                  color: highlight ? color.withValues(alpha: 0.14) : AppColors.background,
+                  color: highlight
+                      ? color.withValues(alpha: 0.14)
+                      : AppColors.background,
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(

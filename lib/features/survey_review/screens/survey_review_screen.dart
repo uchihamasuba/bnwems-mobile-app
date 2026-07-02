@@ -42,13 +42,15 @@ class _SurveyReviewScreenState extends State<SurveyReviewScreen> {
     }
 
     ManagerTaskSummary? surveyTask;
-    if ((taskId == null || taskId.isEmpty) && orderId != null && orderId.isNotEmpty) {
+    if ((taskId == null || taskId.isEmpty) &&
+        orderId != null &&
+        orderId.isNotEmpty) {
       surveyTask = await ManagerMobileService.getSurveyTaskByOrder(orderId);
       taskId = surveyTask?.workTaskId;
     }
 
     if (taskId == null || taskId.isEmpty) {
-      throw Exception('Khong tim thay survey task de tai bao cao.');
+      throw Exception('Không tìm thấy survey task để tải báo cáo.');
     }
 
     final report = await ManagerMobileService.getSurveyReport(taskId);
@@ -75,7 +77,7 @@ class _SurveyReviewScreenState extends State<SurveyReviewScreen> {
           return AppScaffold(
             useSafeArea: true,
             appBar: const CustomAppBar(
-              title: 'Bao cao khao sat',
+              title: 'Báo cáo khảo sát',
               showBackButton: true,
             ),
             body: ErrorState(
@@ -90,7 +92,7 @@ class _SurveyReviewScreenState extends State<SurveyReviewScreen> {
         return AppScaffold(
           useSafeArea: true,
           appBar: CustomAppBar(
-            title: 'Survey task ${data.taskId}',
+            title: 'Task khảo sát ${data.taskId}',
             showBackButton: true,
           ),
           body: SingleChildScrollView(
@@ -100,11 +102,13 @@ class _SurveyReviewScreenState extends State<SurveyReviewScreen> {
               children: [
                 _buildHeaderCard(data),
                 AppSizes.spacingL,
-                const SectionTitle(title: 'Ghi chu survey'),
+                const SectionTitle(title: 'Ghi chú khảo sát'),
                 AppSizes.spacingM,
                 InfoCard(
                   child: Text(
-                    report.notes.isEmpty ? 'Khong co ghi chu survey.' : report.notes,
+                    report.notes.isEmpty
+                        ? 'Không có ghi chú khảo sát.'
+                        : report.notes,
                     style: const TextStyle(
                       fontSize: 13,
                       color: AppColors.textPrimary,
@@ -113,7 +117,7 @@ class _SurveyReviewScreenState extends State<SurveyReviewScreen> {
                   ),
                 ),
                 AppSizes.spacingL,
-                const SectionTitle(title: 'Evidence tu survey report'),
+                const SectionTitle(title: 'Minh chứng từ survey report'),
                 AppSizes.spacingM,
                 _buildPhotosGrid(report),
               ],
@@ -171,8 +175,8 @@ class _SurveyReviewScreenState extends State<SurveyReviewScreen> {
       return const SizedBox(
         height: 220,
         child: EmptyState(
-          title: 'Khong co evidence',
-          description: 'Survey report nay chua co minh chung.',
+          title: 'Không có minh chứng',
+          description: 'Survey report này chưa có minh chứng.',
           icon: Icons.image_not_supported_outlined,
         ),
       );
@@ -198,7 +202,8 @@ class _SurveyReviewScreenState extends State<SurveyReviewScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.image_outlined, color: AppColors.primary, size: 28),
+                  const Icon(Icons.image_outlined,
+                      color: AppColors.primary, size: 28),
                   const SizedBox(height: 6),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8),

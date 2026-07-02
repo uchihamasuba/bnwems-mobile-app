@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import '../models/user_model.dart';
 import '../services/api_service.dart';
 import '../utils/storage_helper.dart';
@@ -14,7 +15,10 @@ class AuthService {
     });
 
     final token = response['data']['token'] as String;
-    final user = UserModel.fromJson(response['data']['user'] as Map<String, dynamic>);
+    final user =
+        UserModel.fromJson(response['data']['user'] as Map<String, dynamic>);
+
+    _ensureMobileAccess(user);
 
     await StorageHelper.saveToken(token);
     await StorageHelper.saveUser(jsonEncode(user.toJson()));
@@ -42,11 +46,31 @@ class AuthService {
       return null;
     }
 
-    final decoded = jsonDecode(userJson) as Map<String, dynamic>;
-    return UserModel.fromJson(decoded);
+    try {
+      final decoded = jsonDecode(userJson) as Map<String, dynamic>;
+      final user = UserModel.fromJson(decoded);
+      if (!user.canUseMobileApp) {
+        await StorageHelper.clearAll();
+        return null;
+      }
+
+      return user;
+    } catch (_) {
+      await StorageHelper.clearAll();
+      return null;
+    }
   }
 
   static Future<void> logout() async {
     await StorageHelper.clearAll();
+  }
+
+  static void _ensureMobileAccess(UserModel user) {
+    if (!user.canUseMobileApp) {
+      throw const ApiException(
+        statusCode: 403,
+        message: 'Tài khoản admin không được phép sử dụng ứng dụng mobile.',
+      );
+    }
   }
 }

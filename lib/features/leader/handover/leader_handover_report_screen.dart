@@ -14,14 +14,21 @@ class LeaderHandoverReportScreen extends StatefulWidget {
   const LeaderHandoverReportScreen({super.key});
 
   @override
-  State<LeaderHandoverReportScreen> createState() => _LeaderHandoverReportScreenState();
+  State<LeaderHandoverReportScreen> createState() =>
+      _LeaderHandoverReportScreenState();
 }
 
-class _LeaderHandoverReportScreenState extends State<LeaderHandoverReportScreen> {
+class _LeaderHandoverReportScreenState
+    extends State<LeaderHandoverReportScreen> {
   final _formKey = GlobalKey<FormState>();
   String _selectedOrder = 'ORD-2026-001';
-  final _noteController = TextEditingController(text: 'Khách hàng đã ký nghiệm thu mặt bằng, bàn giao đầy đủ 15 bàn tròn cưới và bạt che không rò rỉ.');
-  final List<String> _photos = ['evidence_handover_01', 'evidence_handover_signature'];
+  final _noteController = TextEditingController(
+      text:
+          'Khách hàng đã ký nghiệm thu mặt bằng, bàn giao đầy đủ 15 bàn tròn cưới và bạt che không rò rỉ.');
+  final List<String> _photos = [
+    'evidence_handover_01',
+    'evidence_handover_signature'
+  ];
   bool _isSubmitting = false;
 
   void _submitHandover() {
@@ -32,7 +39,8 @@ class _LeaderHandoverReportScreenState extends State<LeaderHandoverReportScreen>
         setState(() => _isSubmitting = false);
 
         // Update Order fieldProgressStatus & status
-        final orderIdx = MockData.orders.indexWhere((o) => o.id == _selectedOrder);
+        final orderIdx =
+            MockData.orders.indexWhere((o) => o.id == _selectedOrder);
         if (orderIdx != -1) {
           final o = MockData.orders[orderIdx];
           MockData.orders[orderIdx] = o.copyWith(
@@ -58,7 +66,8 @@ class _LeaderHandoverReportScreenState extends State<LeaderHandoverReportScreen>
         }
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Báo cáo bàn giao đã được nộp thành công!')),
+          const SnackBar(
+              content: Text('Báo cáo bàn giao đã được nộp thành công!')),
         );
         Navigator.pop(context);
       });
@@ -83,17 +92,21 @@ class _LeaderHandoverReportScreenState extends State<LeaderHandoverReportScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text('Chọn đơn hàng bàn giao:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    const Text('Chọn đơn hàng bàn giao:',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 13)),
                     const SizedBox(height: 6),
                     _buildOrderDropdown(),
                     AppSizes.spacingL,
-
-                    const Text('Ghi chú tình trạng bàn giao:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    const Text('Ghi chú tình trạng bàn giao:',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 13)),
                     const SizedBox(height: 6),
                     _buildNotesCard(),
                     AppSizes.spacingL,
-
-                    const Text('Hình ảnh nghiệm thu / Chữ ký khách hàng:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    const Text('Hình ảnh nghiệm thu / Chữ ký khách hàng:',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 13)),
                     const SizedBox(height: 6),
                     _buildPhotosCard(),
                     const SizedBox(height: AppSizes.xxl),
@@ -113,7 +126,8 @@ class _LeaderHandoverReportScreenState extends State<LeaderHandoverReportScreen>
       child: DropdownButtonFormField<String>(
         isExpanded: true,
         value: _selectedOrder,
-        style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+            color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         items: MockData.orders.map((order) {
           return DropdownMenuItem(
             value: order.id,
@@ -147,7 +161,9 @@ class _LeaderHandoverReportScreenState extends State<LeaderHandoverReportScreen>
           hintText: 'Nhập ghi chú chi tiết bàn giao...',
           border: InputBorder.none,
         ),
-        validator: (val) => val == null || val.isEmpty ? 'Vui lòng nhập ghi chú bàn giao' : null,
+        validator: (val) => val == null || val.isEmpty
+            ? 'Vui lòng nhập ghi chú bàn giao'
+            : null,
       ),
     );
   }
@@ -176,9 +192,12 @@ class _LeaderHandoverReportScreenState extends State<LeaderHandoverReportScreen>
                 decoration: BoxDecoration(
                   color: AppColors.primaryLight.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-                  border: Border.all(color: AppColors.primary.withOpacity(0.3), style: BorderStyle.values[1]),
+                  border: Border.all(
+                      color: AppColors.primary.withOpacity(0.3),
+                      style: BorderStyle.values[1]),
                 ),
-                child: const Icon(Icons.add_a_photo_outlined, color: AppColors.primary),
+                child: const Icon(Icons.add_a_photo_outlined,
+                    color: AppColors.primary),
               ),
             );
           }
@@ -194,7 +213,8 @@ class _LeaderHandoverReportScreenState extends State<LeaderHandoverReportScreen>
                 child: Center(
                   child: Text(
                     _photos[index],
-                    style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 8, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -210,8 +230,10 @@ class _LeaderHandoverReportScreenState extends State<LeaderHandoverReportScreen>
                   },
                   child: Container(
                     padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                    child: const Icon(Icons.close, size: 10, color: Colors.white),
+                    decoration: const BoxDecoration(
+                        color: Colors.red, shape: BoxShape.circle),
+                    child:
+                        const Icon(Icons.close, size: 10, color: Colors.white),
                   ),
                 ),
               ),
@@ -228,7 +250,10 @@ class _LeaderHandoverReportScreenState extends State<LeaderHandoverReportScreen>
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, -4)),
+          BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 10,
+              offset: const Offset(0, -4)),
         ],
       ),
       child: Row(

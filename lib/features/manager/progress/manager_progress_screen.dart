@@ -61,8 +61,9 @@ class _ManagerProgressScreenState extends State<ManagerProgressScreen> {
 
         final orders = snapshot.data!;
         final activeCount = orders.where((o) => o.status.isNotEmpty).length;
-        final withTaskCount =
-            orders.where((o) => o.currentTask != null && o.currentTask!.isNotEmpty).length;
+        final withTaskCount = orders
+            .where((o) => o.currentTask != null && o.currentTask!.isNotEmpty)
+            .length;
 
         return AppScaffold(
           useSafeArea: true,
@@ -72,9 +73,9 @@ class _ManagerProgressScreenState extends State<ManagerProgressScreen> {
               padding: const EdgeInsets.all(AppSizes.m),
               children: [
                 ManagerAppHeader(
-                  title: 'Tien do hien truong',
+                  title: 'Tiến độ hiện trường',
                   subtitle:
-                      'Theo doi feed GET /orders/field-progress va di vao man timeline chi tiet.',
+                      'Theo dõi feed GET /orders/field-progress và đi vào màn timeline chi tiết.',
                   trailing: Container(
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.14),
@@ -94,7 +95,7 @@ class _ManagerProgressScreenState extends State<ManagerProgressScreen> {
                   children: [
                     Expanded(
                       child: _KpiCard(
-                        label: 'Co feed',
+                        label: 'Có feed',
                         value: '$activeCount',
                         color: AppColors.info,
                       ),
@@ -102,7 +103,7 @@ class _ManagerProgressScreenState extends State<ManagerProgressScreen> {
                     const SizedBox(width: AppSizes.s),
                     Expanded(
                       child: _KpiCard(
-                        label: 'Co current task',
+                        label: 'Có task hiện tại',
                         value: '$withTaskCount',
                         color: AppColors.warning,
                       ),
@@ -110,7 +111,7 @@ class _ManagerProgressScreenState extends State<ManagerProgressScreen> {
                     const SizedBox(width: AppSizes.s),
                     Expanded(
                       child: _KpiCard(
-                        label: 'Tong don',
+                        label: 'Tổng đơn',
                         value: '${orders.length}',
                         color: AppColors.success,
                       ),
@@ -119,16 +120,17 @@ class _ManagerProgressScreenState extends State<ManagerProgressScreen> {
                 ),
                 const SizedBox(height: AppSizes.l),
                 const ManagerSectionHeader(
-                  title: 'Danh sach dang theo doi',
-                  subtitle: 'Du lieu lay truc tiep tu feed tien do backend.',
+                  title: 'Danh sách đang theo dõi',
+                  subtitle: 'Dữ liệu lấy trực tiếp từ feed tiến độ backend.',
                 ),
                 const SizedBox(height: AppSizes.m),
                 if (orders.isEmpty)
                   const SizedBox(
                     height: 260,
                     child: EmptyState(
-                      title: 'Chua co tien do hien truong',
-                      description: 'Backend khong tra ve don nao trong feed field-progress.',
+                      title: 'Chưa có tiến độ hiện trường',
+                      description:
+                          'Backend không trả về đơn nào trong feed field-progress.',
                       icon: Icons.timeline_rounded,
                     ),
                   )
@@ -197,7 +199,8 @@ class _ProgressCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasCurrentTask = order.currentTask != null && order.currentTask!.isNotEmpty;
+    final hasCurrentTask =
+        order.currentTask != null && order.currentTask!.isNotEmpty;
 
     return InfoCard(
       onTap: () => Navigator.pushNamed(
@@ -224,7 +227,7 @@ class _ProgressCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      order.venueAddress ?? 'Chua co dia diem',
+                      order.venueAddress ?? 'Chưa có địa điểm',
                       style: const TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 15,
@@ -234,7 +237,9 @@ class _ProgressCard extends StatelessWidget {
                   ],
                 ),
               ),
-              StatusChip(label: order.status.isEmpty ? 'Unknown' : order.status),
+              StatusChip(
+                label: order.status.isEmpty ? 'Chưa xác định' : order.status,
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -242,7 +247,9 @@ class _ProgressCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  hasCurrentTask ? 'Current task: ${order.currentTask}' : 'Current task: --',
+                  hasCurrentTask
+                      ? 'Task hiện tại: ${order.currentTask}'
+                      : 'Task hiện tại: --',
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 12,
@@ -256,8 +263,8 @@ class _ProgressCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             order.lastUpdate == null
-                ? 'Last update: chua co'
-                : 'Last update: ${order.lastUpdate!.day}/${order.lastUpdate!.month}/${order.lastUpdate!.year} ${order.lastUpdate!.hour.toString().padLeft(2, '0')}:${order.lastUpdate!.minute.toString().padLeft(2, '0')}',
+                ? 'Cập nhật gần nhất: chưa có'
+                : 'Cập nhật gần nhất: ${order.lastUpdate!.day}/${order.lastUpdate!.month}/${order.lastUpdate!.year} ${order.lastUpdate!.hour.toString().padLeft(2, '0')}:${order.lastUpdate!.minute.toString().padLeft(2, '0')}',
             style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 12,

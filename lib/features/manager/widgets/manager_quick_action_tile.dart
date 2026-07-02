@@ -52,7 +52,7 @@ class ManagerQuickActionTile extends StatelessWidget {
           const Row(
             children: [
               Text(
-                'Mo nhanh',
+                'Mở nhanh',
                 style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 11,

@@ -13,15 +13,18 @@ class TechnicalEvidenceUploadScreen extends StatefulWidget {
   const TechnicalEvidenceUploadScreen({super.key});
 
   @override
-  State<TechnicalEvidenceUploadScreen> createState() => _TechnicalEvidenceUploadScreenState();
+  State<TechnicalEvidenceUploadScreen> createState() =>
+      _TechnicalEvidenceUploadScreenState();
 }
 
-class _TechnicalEvidenceUploadScreenState extends State<TechnicalEvidenceUploadScreen> {
+class _TechnicalEvidenceUploadScreenState
+    extends State<TechnicalEvidenceUploadScreen> {
   final _formKey = GlobalKey<FormState>();
   String _selectedOrder = 'ORD-2026-001';
   String _evidenceType = 'Checkout';
   final _titleController = TextEditingController(text: 'Ảnh xuất kho rạp VIP');
-  final _noteController = TextEditingController(text: 'Đã chất xếp đầy đủ lên xe tải chuẩn bị di chuyển.');
+  final _noteController = TextEditingController(
+      text: 'Đã chất xếp đầy đủ lên xe tải chuẩn bị di chuyển.');
   String _photoName = 'evidence_tech_checkout_01';
   bool _isSubmitting = false;
 
@@ -46,12 +49,14 @@ class _TechnicalEvidenceUploadScreenState extends State<TechnicalEvidenceUploadS
         );
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tải ảnh minh chứng thực địa thành công!')),
+          const SnackBar(
+              content: Text('Tải ảnh minh chứng thực địa thành công!')),
         );
-        
+
         // Clear inputs
         setState(() {
-          _photoName = 'evidence_tech_${_evidenceType.toLowerCase()}_${DateTime.now().millisecondsSinceEpoch}';
+          _photoName =
+              'evidence_tech_${_evidenceType.toLowerCase()}_${DateTime.now().millisecondsSinceEpoch}';
         });
       });
     }
@@ -75,22 +80,27 @@ class _TechnicalEvidenceUploadScreenState extends State<TechnicalEvidenceUploadS
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text('Chọn đơn hàng liên kết:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    const Text('Chọn đơn hàng liên kết:',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 13)),
                     const SizedBox(height: 6),
                     _buildOrderDropdown(),
                     AppSizes.spacingL,
-
-                    const Text('Phân loại minh chứng:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    const Text('Phân loại minh chứng:',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 13)),
                     const SizedBox(height: 6),
                     _buildTypeDropdown(),
                     AppSizes.spacingL,
-
-                    const Text('Mô tả hình ảnh:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    const Text('Mô tả hình ảnh:',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 13)),
                     const SizedBox(height: 6),
                     _buildTextFormCard(),
                     AppSizes.spacingL,
-
-                    const Text('Chụp ảnh hiện trường:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    const Text('Chụp ảnh hiện trường:',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 13)),
                     const SizedBox(height: 6),
                     _buildPhotoInputCard(),
                     const SizedBox(height: AppSizes.xxl),
@@ -110,7 +120,8 @@ class _TechnicalEvidenceUploadScreenState extends State<TechnicalEvidenceUploadS
       child: DropdownButtonFormField<String>(
         isExpanded: true,
         value: _selectedOrder,
-        style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+            color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         items: MockData.orders.map((order) {
           return DropdownMenuItem(
             value: order.id,
@@ -140,12 +151,25 @@ class _TechnicalEvidenceUploadScreenState extends State<TechnicalEvidenceUploadS
       child: DropdownButtonFormField<String>(
         isExpanded: true,
         value: _evidenceType,
-        style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+            color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         items: const [
-          DropdownMenuItem(value: 'Checkout', child: Text('Bàn giao xuất kho (Checkout)', overflow: TextOverflow.ellipsis)),
-          DropdownMenuItem(value: 'Installation', child: Text('Thi công hoàn thiện (Installation)', overflow: TextOverflow.ellipsis)),
-          DropdownMenuItem(value: 'Return', child: Text('Hoàn trả thiết bị kho (Return)', overflow: TextOverflow.ellipsis)),
-          DropdownMenuItem(value: 'Damage/Loss', child: Text('Báo cáo hỏng hóc (Damage/Loss)', overflow: TextOverflow.ellipsis)),
+          DropdownMenuItem(
+              value: 'Checkout',
+              child: Text('Bàn giao xuất kho (Checkout)',
+                  overflow: TextOverflow.ellipsis)),
+          DropdownMenuItem(
+              value: 'Installation',
+              child: Text('Thi công hoàn thiện (Installation)',
+                  overflow: TextOverflow.ellipsis)),
+          DropdownMenuItem(
+              value: 'Return',
+              child: Text('Hoàn trả thiết bị kho (Return)',
+                  overflow: TextOverflow.ellipsis)),
+          DropdownMenuItem(
+              value: 'Damage/Loss',
+              child: Text('Báo cáo hỏng hóc (Damage/Loss)',
+                  overflow: TextOverflow.ellipsis)),
         ],
         onChanged: (val) {
           if (val != null) {
@@ -169,13 +193,15 @@ class _TechnicalEvidenceUploadScreenState extends State<TechnicalEvidenceUploadS
           TextFormField(
             controller: _titleController,
             decoration: const InputDecoration(labelText: 'Tiêu đề hình ảnh'),
-            validator: (val) => val == null || val.isEmpty ? 'Không để trống tiêu đề' : null,
+            validator: (val) =>
+                val == null || val.isEmpty ? 'Không để trống tiêu đề' : null,
           ),
           const SizedBox(height: AppSizes.m),
           TextFormField(
             controller: _noteController,
             maxLines: 3,
-            decoration: const InputDecoration(labelText: 'Ghi chú mô tả chi tiết'),
+            decoration:
+                const InputDecoration(labelText: 'Ghi chú mô tả chi tiết'),
           ),
         ],
       ),
@@ -187,7 +213,8 @@ class _TechnicalEvidenceUploadScreenState extends State<TechnicalEvidenceUploadS
       child: InkWell(
         onTap: () {
           setState(() {
-            _photoName = 'evidence_tech_${_evidenceType.toLowerCase()}_${DateTime.now().millisecondsSinceEpoch}';
+            _photoName =
+                'evidence_tech_${_evidenceType.toLowerCase()}_${DateTime.now().millisecondsSinceEpoch}';
           });
         },
         child: Container(
@@ -201,16 +228,23 @@ class _TechnicalEvidenceUploadScreenState extends State<TechnicalEvidenceUploadS
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.add_a_photo_outlined, color: AppColors.primary, size: 28),
+                const Icon(Icons.add_a_photo_outlined,
+                    color: AppColors.primary, size: 28),
                 const SizedBox(height: 6),
                 Text(
                   _photoName,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary),
                 ),
                 const SizedBox(height: 4),
                 const Text(
                   'Chạm để chụp hình bằng Camera di động',
-                  style: TextStyle(fontSize: 10, color: AppColors.textLight, fontStyle: FontStyle.italic),
+                  style: TextStyle(
+                      fontSize: 10,
+                      color: AppColors.textLight,
+                      fontStyle: FontStyle.italic),
                 ),
               ],
             ),
@@ -226,7 +260,10 @@ class _TechnicalEvidenceUploadScreenState extends State<TechnicalEvidenceUploadS
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, -4)),
+          BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 10,
+              offset: const Offset(0, -4)),
         ],
       ),
       child: Row(

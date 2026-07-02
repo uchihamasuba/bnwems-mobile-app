@@ -10,12 +10,16 @@ class TechnicalTransportationScreen extends StatefulWidget {
   const TechnicalTransportationScreen({super.key});
 
   @override
-  State<TechnicalTransportationScreen> createState() => _TechnicalTransportationScreenState();
+  State<TechnicalTransportationScreen> createState() =>
+      _TechnicalTransportationScreenState();
 }
 
-class _TechnicalTransportationScreenState extends State<TechnicalTransportationScreen> {
+class _TechnicalTransportationScreenState
+    extends State<TechnicalTransportationScreen> {
   String _currentMilestone = 'In Transit';
-  final _noteController = TextEditingController(text: 'Xe tải di chuyển chậm do kẹt xe giờ cao điểm tại ngã tư Nguyễn Hữu Thọ.');
+  final _noteController = TextEditingController(
+      text:
+          'Xe tải di chuyển chậm do kẹt xe giờ cao điểm tại ngã tư Nguyễn Hữu Thọ.');
   bool _isSubmitting = false;
 
   void _submitMilestone() {
@@ -24,7 +28,9 @@ class _TechnicalTransportationScreenState extends State<TechnicalTransportationS
       if (!mounted) return;
       setState(() => _isSubmitting = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Đã cập nhật trạng thái vận chuyển: $_currentMilestone!')),
+        SnackBar(
+            content:
+                Text('Đã cập nhật trạng thái vận chuyển: $_currentMilestone!')),
       );
       Navigator.pop(context);
     });
@@ -46,12 +52,15 @@ class _TechnicalTransportationScreenState extends State<TechnicalTransportationS
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text('Chọn trạng thái vận chuyển hiện tại:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  const Text('Chọn trạng thái vận chuyển hiện tại:',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                   const SizedBox(height: 6),
                   _buildMilestonesCard(),
                   AppSizes.spacingL,
-
-                  const Text('Báo cáo sự cố hoặc ghi chú trễ:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  const Text('Báo cáo sự cố hoặc ghi chú trễ:',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                   const SizedBox(height: 6),
                   _buildNotesCard(),
                   const SizedBox(height: AppSizes.xxl),
@@ -69,11 +78,14 @@ class _TechnicalTransportationScreenState extends State<TechnicalTransportationS
     return InfoCard(
       child: Column(
         children: [
-          _buildRadioMilestone('Loaded', 'Đã chất xếp hàng lên xe tải (Loaded)'),
+          _buildRadioMilestone(
+              'Loaded', 'Đã chất xếp hàng lên xe tải (Loaded)'),
           const Divider(height: 1, color: AppColors.divider),
-          _buildRadioMilestone('In Transit', 'Đang vận chuyển trên đường (In Transit)'),
+          _buildRadioMilestone(
+              'In Transit', 'Đang vận chuyển trên đường (In Transit)'),
           const Divider(height: 1, color: AppColors.divider),
-          _buildRadioMilestone('Arrived at Site', 'Đã đến địa điểm thi công (Arrived at Site)'),
+          _buildRadioMilestone(
+              'Arrived at Site', 'Đã đến địa điểm thi công (Arrived at Site)'),
         ],
       ),
     );
@@ -123,7 +135,10 @@ class _TechnicalTransportationScreenState extends State<TechnicalTransportationS
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, -4)),
+          BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 10,
+              offset: const Offset(0, -4)),
         ],
       ),
       child: Row(

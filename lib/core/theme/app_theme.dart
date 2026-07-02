@@ -22,10 +22,11 @@ class AppTheme {
         surface: AppColors.cardBackground,
         onSurface: AppColors.textPrimary,
       ),
-      
+
       // Typography
-      fontFamily: 'Roboto', // Default fallback, custom font can be loaded if specified
-      
+      fontFamily:
+          'Roboto', // Default fallback, custom font can be loaded if specified
+
       // AppBar Theme
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.white,
@@ -136,7 +137,8 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
           borderSide: const BorderSide(color: AppColors.divider, width: 1),
@@ -153,10 +155,11 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
           borderSide: const BorderSide(color: AppColors.error, width: 1),
         ),
-        labelStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+        labelStyle:
+            const TextStyle(color: AppColors.textSecondary, fontSize: 14),
         hintStyle: const TextStyle(color: AppColors.textLight, fontSize: 14),
       ),
-      
+
       // Floating Action Button Theme
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: AppColors.primary,

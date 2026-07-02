@@ -42,11 +42,12 @@ class _FieldProgressScreenState extends State<FieldProgressScreen> {
 
   Future<_FieldProgressData> _loadData(String orderId) async {
     if (orderId.isEmpty) {
-      throw Exception('Khong tim thay orderId de tai tien do hien truong.');
+      throw Exception('Không tìm thấy orderId để tải tiến độ hiện trường.');
     }
 
     final order = await ManagerMobileService.getOrderDetail(orderId);
-    final tasks = await ManagerMobileService.getTasks(orderId: orderId, limit: 50);
+    final tasks =
+        await ManagerMobileService.getTasks(orderId: orderId, limit: 50);
     ManagerVerificationSummary? verification;
     try {
       verification = await ManagerMobileService.getVerificationSummary(orderId);
@@ -77,7 +78,7 @@ class _FieldProgressScreenState extends State<FieldProgressScreen> {
           return AppScaffold(
             useSafeArea: true,
             appBar: const CustomAppBar(
-              title: 'Tien do hien truong',
+              title: 'Tiến độ hiện trường',
               showBackButton: true,
             ),
             body: ErrorState(
@@ -87,17 +88,18 @@ class _FieldProgressScreenState extends State<FieldProgressScreen> {
         }
 
         final data = snapshot.data!;
-        final tasks = [...data.tasks]
-          ..sort((a, b) {
-            final aTime = a.scheduledStart ?? DateTime.fromMillisecondsSinceEpoch(0);
-            final bTime = b.scheduledStart ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final tasks = [...data.tasks]..sort((a, b) {
+            final aTime =
+                a.scheduledStart ?? DateTime.fromMillisecondsSinceEpoch(0);
+            final bTime =
+                b.scheduledStart ?? DateTime.fromMillisecondsSinceEpoch(0);
             return aTime.compareTo(bTime);
           });
 
         return AppScaffold(
           useSafeArea: true,
           appBar: CustomAppBar(
-            title: 'Tien do ${data.order.orderNumber}',
+            title: 'Tiến độ ${data.order.orderNumber}',
             showBackButton: true,
           ),
           body: Column(
@@ -127,7 +129,7 @@ class _FieldProgressScreenState extends State<FieldProgressScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            data.order.venueAddress ?? 'Chua co dia diem',
+                            data.order.venueAddress ?? 'Chưa có địa điểm',
                             style: const TextStyle(
                               fontSize: 11,
                               color: AppColors.textSecondary,
@@ -150,8 +152,9 @@ class _FieldProgressScreenState extends State<FieldProgressScreen> {
                           SizedBox(
                             height: 240,
                             child: EmptyState(
-                              title: 'Chua co task',
-                              description: 'Order nay chua co task nao tu backend.',
+                              title: 'Chưa có task',
+                              description:
+                                  'Đơn hàng này chưa có task nào từ backend.',
                               icon: Icons.assignment_outlined,
                             ),
                           ),
@@ -174,7 +177,7 @@ class _FieldProgressScreenState extends State<FieldProgressScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   const Text(
-                                    'Verification summary',
+                                    'Tổng hợp xác minh',
                                     style: TextStyle(
                                       fontWeight: FontWeight.w700,
                                       color: AppColors.textPrimary,
@@ -182,17 +185,18 @@ class _FieldProgressScreenState extends State<FieldProgressScreen> {
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    'Tasks completed: ${data.verification!.tasksCompleted}/${data.verification!.totalTasks}',
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text('Handover: ${data.verification!.handoverStatus}'),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Damage/loss recorded: ${data.verification!.damageLossRecorded}',
+                                    'Task hoàn thành: ${data.verification!.tasksCompleted}/${data.verification!.totalTasks}',
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    'Verification status: ${data.verification!.verificationStatus}',
+                                      'Bàn giao: ${data.verification!.handoverStatus}'),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Hỏng hóc/thiếu hụt đã ghi nhận: ${data.verification!.damageLossRecorded}',
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Trạng thái xác minh: ${data.verification!.verificationStatus}',
                                   ),
                                 ],
                               ),
@@ -286,7 +290,7 @@ class _FieldProgressScreenState extends State<FieldProgressScreen> {
                     if (task.scheduledStart != null) ...[
                       const SizedBox(height: 8),
                       Text(
-                        'Start: ${_formatDateTime(task.scheduledStart!)}',
+                        'Bắt đầu: ${_formatDateTime(task.scheduledStart!)}',
                         style: const TextStyle(
                           fontSize: 11,
                           color: AppColors.textSecondary,
@@ -296,7 +300,7 @@ class _FieldProgressScreenState extends State<FieldProgressScreen> {
                     if (task.scheduledEnd != null) ...[
                       const SizedBox(height: 4),
                       Text(
-                        'End: ${_formatDateTime(task.scheduledEnd!)}',
+                        'Kết thúc: ${_formatDateTime(task.scheduledEnd!)}',
                         style: const TextStyle(
                           fontSize: 11,
                           color: AppColors.textSecondary,

@@ -13,10 +13,12 @@ class LeaderProgressUpdateScreen extends StatefulWidget {
   const LeaderProgressUpdateScreen({super.key});
 
   @override
-  State<LeaderProgressUpdateScreen> createState() => _LeaderProgressUpdateScreenState();
+  State<LeaderProgressUpdateScreen> createState() =>
+      _LeaderProgressUpdateScreenState();
 }
 
-class _LeaderProgressUpdateScreenState extends State<LeaderProgressUpdateScreen> {
+class _LeaderProgressUpdateScreenState
+    extends State<LeaderProgressUpdateScreen> {
   String _selectedOrder = 'ORD-2026-001';
   late List<FieldProgressStep> _steps;
 
@@ -33,9 +35,10 @@ class _LeaderProgressUpdateScreenState extends State<LeaderProgressUpdateScreen>
   void _updateStepStatus(int index, String newStatus) {
     setState(() {
       _steps[index].status = newStatus;
-      
+
       // Update overall order status based on step
-      final orderIdx = MockData.orders.indexWhere((o) => o.id == _selectedOrder);
+      final orderIdx =
+          MockData.orders.indexWhere((o) => o.id == _selectedOrder);
       if (orderIdx != -1) {
         final currentOrder = MockData.orders[orderIdx];
         String overallStatus = currentOrder.fieldProgressStatus;
@@ -49,7 +52,9 @@ class _LeaderProgressUpdateScreenState extends State<LeaderProgressUpdateScreen>
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Đã cập nhật trạng thái bước "${_steps[index].stepName}" thành "$newStatus"')),
+      SnackBar(
+          content: Text(
+              'Đã cập nhật trạng thái bước "${_steps[index].stepName}" thành "$newStatus"')),
     );
   }
 
@@ -69,21 +74,27 @@ class _LeaderProgressUpdateScreenState extends State<LeaderProgressUpdateScreen>
             color: Colors.white,
             child: Row(
               children: [
-                const Text('Chọn đơn hàng:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                const Text('Chọn đơn hàng:',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
                       color: AppColors.background,
-                      borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+                      borderRadius:
+                          BorderRadius.circular(AppSizes.radiusMedium),
                       border: Border.all(color: AppColors.divider),
                     ),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
                         value: _selectedOrder,
                         isExpanded: true,
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontSize: 13),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                            fontSize: 13),
                         items: MockData.orders.map((o) {
                           return DropdownMenuItem(
                             value: o.id,
@@ -109,7 +120,9 @@ class _LeaderProgressUpdateScreenState extends State<LeaderProgressUpdateScreen>
 
           Expanded(
             child: _steps.isEmpty
-                ? const Center(child: Text('Không tìm thấy sơ đồ tiến độ cho đơn hàng này.'))
+                ? const Center(
+                    child:
+                        Text('Không tìm thấy sơ đồ tiến độ cho đơn hàng này.'))
                 : ListView.separated(
                     padding: const EdgeInsets.all(AppSizes.m),
                     itemCount: _steps.length,
@@ -147,12 +160,16 @@ class _LeaderProgressUpdateScreenState extends State<LeaderProgressUpdateScreen>
                   Container(
                     width: 12,
                     height: 12,
-                    decoration: BoxDecoration(color: markerColor, shape: BoxShape.circle),
+                    decoration: BoxDecoration(
+                        color: markerColor, shape: BoxShape.circle),
                   ),
                   const SizedBox(width: 8),
                   Text(
                     step.stepName,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: AppColors.textPrimary),
                   ),
                 ],
               ),
@@ -163,20 +180,24 @@ class _LeaderProgressUpdateScreenState extends State<LeaderProgressUpdateScreen>
             const SizedBox(height: 8),
             Text(
               'Ghi chú: ${step.note}',
-              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+              style:
+                  const TextStyle(color: AppColors.textSecondary, fontSize: 12),
             ),
           ],
           const Divider(height: 20, color: AppColors.divider),
-          
+
           // Action Buttons to change state
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              _buildStepActionButton(index, 'Trễ hạn', 'delayed', AppColors.error),
+              _buildStepActionButton(
+                  index, 'Trễ hạn', 'delayed', AppColors.error),
               const SizedBox(width: 8),
-              _buildStepActionButton(index, 'Đang làm', 'inProgress', AppColors.primary),
+              _buildStepActionButton(
+                  index, 'Đang làm', 'inProgress', AppColors.primary),
               const SizedBox(width: 8),
-              _buildStepActionButton(index, 'Hoàn thành', 'completed', AppColors.success),
+              _buildStepActionButton(
+                  index, 'Hoàn thành', 'completed', AppColors.success),
             ],
           ),
         ],
@@ -184,7 +205,8 @@ class _LeaderProgressUpdateScreenState extends State<LeaderProgressUpdateScreen>
     );
   }
 
-  Widget _buildStepActionButton(int index, String label, String statusValue, Color color) {
+  Widget _buildStepActionButton(
+      int index, String label, String statusValue, Color color) {
     final currentStatus = _steps[index].status;
     final isCurrent = currentStatus == statusValue;
 
@@ -200,10 +222,12 @@ class _LeaderProgressUpdateScreenState extends State<LeaderProgressUpdateScreen>
         minimumSize: const Size(60, 28),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(4),
-          side: BorderSide(color: isCurrent ? Colors.transparent : AppColors.divider),
+          side: BorderSide(
+              color: isCurrent ? Colors.transparent : AppColors.divider),
         ),
       ),
-      child: Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+      child: Text(label,
+          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
     );
   }
 

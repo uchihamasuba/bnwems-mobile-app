@@ -24,7 +24,8 @@ class MobileNotification {
   final String title;
   final String orderCode;
   final String message;
-  final String type; // Order, Payment, Survey, Field Operation, Change Request, Damage/Loss
+  final String
+      type; // Order, Payment, Survey, Field Operation, Change Request, Damage/Loss
   final String priority; // High, Medium, Low
   final DateTime createdAt;
   bool isRead;
@@ -55,7 +56,8 @@ class MobileOrder {
   final OrderStatus orderStatus;
   final PaymentStatus paymentStatus;
   final String surveyStatus; // Pending, Approved, Need More Info
-  final String fieldProgressStatus; // Check-out -> Transportation -> Installation -> Handover -> Collection -> Return -> Completed
+  final String
+      fieldProgressStatus; // Check-out -> Transportation -> Installation -> Handover -> Collection -> Return -> Completed
   final bool hasEmergency;
   final String? urgencyMessage;
   final double totalAmount;

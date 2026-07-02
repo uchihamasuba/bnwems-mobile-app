@@ -19,7 +19,8 @@ class ChangeRequestApprovalScreen extends StatefulWidget {
       _ChangeRequestApprovalScreenState();
 }
 
-class _ChangeRequestApprovalScreenState extends State<ChangeRequestApprovalScreen> {
+class _ChangeRequestApprovalScreenState
+    extends State<ChangeRequestApprovalScreen> {
   String? _changeRequestId;
   String? _orderId;
   bool _submitting = false;
@@ -40,7 +41,7 @@ class _ChangeRequestApprovalScreenState extends State<ChangeRequestApprovalScree
     if (_changeRequestId == null || _changeRequestId!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Khong co changeRequestId de goi API.'),
+          content: Text('Không có changeRequestId để gọi API.'),
         ),
       );
       return;
@@ -56,7 +57,9 @@ class _ChangeRequestApprovalScreenState extends State<ChangeRequestApprovalScree
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Da gui $status cho change request ${_changeRequestId!}.')),
+        SnackBar(
+            content: Text(
+                'Đã gửi $status cho yêu cầu thay đổi ${_changeRequestId!}.')),
       );
     } catch (error) {
       if (!mounted) {
@@ -79,7 +82,7 @@ class _ChangeRequestApprovalScreenState extends State<ChangeRequestApprovalScree
     return AppScaffold(
       useSafeArea: true,
       appBar: const CustomAppBar(
-        title: 'Change request',
+        title: 'Yêu cầu thay đổi',
         showBackButton: true,
       ),
       body: Column(
@@ -99,7 +102,7 @@ class _ChangeRequestApprovalScreenState extends State<ChangeRequestApprovalScree
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Change request: ${_changeRequestId ?? '--'}',
+                                'Yêu cầu thay đổi: ${_changeRequestId ?? '--'}',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
@@ -108,7 +111,7 @@ class _ChangeRequestApprovalScreenState extends State<ChangeRequestApprovalScree
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Order: ${_orderId ?? '--'}',
+                                'Đơn hàng: ${_orderId ?? '--'}',
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: AppColors.textSecondary,
@@ -117,7 +120,7 @@ class _ChangeRequestApprovalScreenState extends State<ChangeRequestApprovalScree
                             ],
                           ),
                         ),
-                        StatusChip(label: canSubmit ? 'San sang' : '--'),
+                        StatusChip(label: canSubmit ? 'Sẵn sàng' : '--'),
                       ],
                     ),
                   ),
@@ -127,7 +130,7 @@ class _ChangeRequestApprovalScreenState extends State<ChangeRequestApprovalScree
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Du lieu hien co',
+                          'Dữ liệu hiện có',
                           style: TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 14,
@@ -135,7 +138,9 @@ class _ChangeRequestApprovalScreenState extends State<ChangeRequestApprovalScree
                           ),
                         ),
                         const SizedBox(height: 10),
-                        _DetailRow(label: 'changeRequestId', value: _changeRequestId ?? '--'),
+                        _DetailRow(
+                            label: 'changeRequestId',
+                            value: _changeRequestId ?? '--'),
                         const SizedBox(height: 8),
                         _DetailRow(label: 'orderId', value: _orderId ?? '--'),
                       ],
@@ -162,7 +167,7 @@ class _ChangeRequestApprovalScreenState extends State<ChangeRequestApprovalScree
                 children: [
                   Expanded(
                     child: SecondaryButton(
-                      text: _submitting ? 'Dang gui...' : 'Reject',
+                      text: _submitting ? 'Đang gửi...' : 'Từ chối',
                       icon: Icons.cancel_outlined,
                       onPressed: _submitting ? null : () => _submit('REJECTED'),
                     ),
@@ -170,7 +175,7 @@ class _ChangeRequestApprovalScreenState extends State<ChangeRequestApprovalScree
                   const SizedBox(width: AppSizes.s),
                   Expanded(
                     child: PrimaryButton(
-                      text: _submitting ? 'Dang gui...' : 'Approve',
+                      text: _submitting ? 'Đang gửi...' : 'Phê duyệt',
                       icon: Icons.check_circle_outline,
                       onPressed: _submitting ? null : () => _submit('APPROVED'),
                     ),

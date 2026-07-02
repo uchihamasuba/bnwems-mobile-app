@@ -92,9 +92,8 @@ class ManagerFeatureRegistry {
         'GET /tasks',
         'GET /reports/verification',
       ],
-      backendGap: true,
       notes: [
-        'Backend currently exposes progress feed, not full per-step timeline.',
+        'Uses the manager-wide field progress feed returned by the backend.',
       ],
     ),
     ManagerFeatureDefinition(
@@ -104,10 +103,10 @@ class ManagerFeatureRegistry {
       purpose: 'Read survey report, photos, and manager review decision.',
       apis: [
         'GET /tasks/:id/survey-report',
+        'PUT /tasks/:id/survey-report/review',
       ],
-      backendGap: true,
       notes: [
-        'No survey approval endpoint exists yet.',
+        'Manager can review survey reports directly from the mobile flow.',
       ],
     ),
     ManagerFeatureDefinition(
@@ -116,11 +115,12 @@ class ManagerFeatureRegistry {
       route: '/manager-change-request-approval',
       purpose: 'Approve or reject field change requests.',
       apis: [
+        'GET /change-requests/:id',
+        'GET /orders/:id/change-requests',
         'PUT /change-requests/:id/approve',
       ],
-      backendGap: true,
       notes: [
-        'No change-request detail or list endpoint exists for manager mobile.',
+        'Change-request detail and order-level list endpoints are available.',
       ],
     ),
     ManagerFeatureDefinition(
@@ -130,25 +130,27 @@ class ManagerFeatureRegistry {
       purpose: 'Inspect payment evidence and confirm payment.',
       apis: [
         'GET /orders/:id/payments',
-        'PUT /payments/:id/confirm',
+        'GET /payment-requests/:id',
+        'PUT /payment-requests/:id/confirm',
       ],
       notes: [
-        'Backend has no standalone GET payment detail endpoint.',
+        'Payment confirmation is performed on payment requests.',
       ],
     ),
     ManagerFeatureDefinition(
       featureKey: 'evidence_gallery',
       screenName: 'Evidence Gallery Screen',
       route: '/manager-evidence-gallery',
-      purpose: 'Browse submitted evidence across survey, payment, and field ops.',
+      purpose:
+          'Browse submitted evidence across survey, payment, and field ops.',
       apis: [
         'GET /tasks/:id/survey-report',
+        'GET /orders/:id/evidences',
         'GET /orders/:id/payments',
         'GET /reports/verification',
       ],
-      backendGap: true,
       notes: [
-        'No aggregated evidence endpoint exists yet.',
+        'Order-level evidence endpoint is available for aggregated review.',
       ],
     ),
   ];

@@ -14,17 +14,22 @@ class LeaderWarehouseReturnReportScreen extends StatefulWidget {
   const LeaderWarehouseReturnReportScreen({super.key});
 
   @override
-  State<LeaderWarehouseReturnReportScreen> createState() => _LeaderWarehouseReturnReportScreenState();
+  State<LeaderWarehouseReturnReportScreen> createState() =>
+      _LeaderWarehouseReturnReportScreenState();
 }
 
-class _LeaderWarehouseReturnReportScreenState extends State<LeaderWarehouseReturnReportScreen> {
+class _LeaderWarehouseReturnReportScreenState
+    extends State<LeaderWarehouseReturnReportScreen> {
   final _formKey = GlobalKey<FormState>();
   String _selectedOrder = 'ORD-2026-003';
   final _returnedQtyController = TextEditingController(text: '98');
   final _damagedQtyController = TextEditingController(text: '2');
   final _lostQtyController = TextEditingController(text: '0');
-  final _equipController = TextEditingController(text: 'Ghế Chiavari trắng nệm đỏ');
-  final _noteController = TextEditingController(text: 'Đã bốc xếp và bàn giao hoàn trả kho Quận 7 đầy đủ. Phát hiện 2 ghế bị gãy chân gỗ trong quá trình làm lễ.');
+  final _equipController =
+      TextEditingController(text: 'Ghế Chiavari trắng nệm đỏ');
+  final _noteController = TextEditingController(
+      text:
+          'Đã bốc xếp và bàn giao hoàn trả kho Quận 7 đầy đủ. Phát hiện 2 ghế bị gãy chân gỗ trong quá trình làm lễ.');
   final List<String> _photos = ['evidence_return_warehouse_check'];
   bool _isSubmitting = false;
 
@@ -36,7 +41,8 @@ class _LeaderWarehouseReturnReportScreenState extends State<LeaderWarehouseRetur
         setState(() => _isSubmitting = false);
 
         // Update Order fieldProgressStatus & status
-        final orderIdx = MockData.orders.indexWhere((o) => o.id == _selectedOrder);
+        final orderIdx =
+            MockData.orders.indexWhere((o) => o.id == _selectedOrder);
         if (orderIdx != -1) {
           final o = MockData.orders[orderIdx];
           MockData.orders[orderIdx] = o.copyWith(
@@ -62,7 +68,8 @@ class _LeaderWarehouseReturnReportScreenState extends State<LeaderWarehouseRetur
         }
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Báo cáo hoàn kho đã được nộp thành công!')),
+          const SnackBar(
+              content: Text('Báo cáo hoàn kho đã được nộp thành công!')),
         );
         Navigator.pop(context);
       });
@@ -87,22 +94,27 @@ class _LeaderWarehouseReturnReportScreenState extends State<LeaderWarehouseRetur
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text('Chọn đơn hàng sự kiện:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    const Text('Chọn đơn hàng sự kiện:',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 13)),
                     const SizedBox(height: 6),
                     _buildOrderDropdown(),
                     AppSizes.spacingL,
-
-                    const Text('Kiểm đếm thiết bị hoàn trả:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    const Text('Kiểm đếm thiết bị hoàn trả:',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 13)),
                     const SizedBox(height: 6),
                     _buildSpecsCard(),
                     AppSizes.spacingL,
-
-                    const Text('Chi tiết ghi chú hoàn trả:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    const Text('Chi tiết ghi chú hoàn trả:',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 13)),
                     const SizedBox(height: 6),
                     _buildNotesCard(),
                     AppSizes.spacingL,
-
-                    const Text('Ảnh chụp biên bản bàn giao hoàn kho:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    const Text('Ảnh chụp biên bản bàn giao hoàn kho:',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 13)),
                     const SizedBox(height: 6),
                     _buildPhotosCard(),
                     const SizedBox(height: AppSizes.xxl),
@@ -122,7 +134,8 @@ class _LeaderWarehouseReturnReportScreenState extends State<LeaderWarehouseRetur
       child: DropdownButtonFormField<String>(
         isExpanded: true,
         value: _selectedOrder,
-        style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+            color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         items: MockData.orders.map((order) {
           return DropdownMenuItem(
             value: order.id,
@@ -153,15 +166,20 @@ class _LeaderWarehouseReturnReportScreenState extends State<LeaderWarehouseRetur
         children: [
           TextFormField(
             controller: _equipController,
-            decoration: const InputDecoration(labelText: 'Tên thiết bị hoàn trả'),
-            validator: (val) => val == null || val.isEmpty ? 'Không để trống tên thiết bị' : null,
+            decoration:
+                const InputDecoration(labelText: 'Tên thiết bị hoàn trả'),
+            validator: (val) => val == null || val.isEmpty
+                ? 'Không để trống tên thiết bị'
+                : null,
           ),
           const SizedBox(height: AppSizes.m),
           TextFormField(
             controller: _returnedQtyController,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Số lượng nguyên vẹn (Returned)'),
-            validator: (val) => val == null || val.isEmpty ? 'Nhập số lượng' : null,
+            decoration: const InputDecoration(
+                labelText: 'Số lượng nguyên vẹn (Returned)'),
+            validator: (val) =>
+                val == null || val.isEmpty ? 'Nhập số lượng' : null,
           ),
           const SizedBox(height: AppSizes.m),
           Row(
@@ -171,7 +189,8 @@ class _LeaderWarehouseReturnReportScreenState extends State<LeaderWarehouseRetur
                   controller: _damagedQtyController,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(labelText: 'Số lượng hỏng'),
-                  validator: (val) => val == null || val.isEmpty ? 'Nhập số lượng' : null,
+                  validator: (val) =>
+                      val == null || val.isEmpty ? 'Nhập số lượng' : null,
                 ),
               ),
               const SizedBox(width: AppSizes.m),
@@ -180,7 +199,8 @@ class _LeaderWarehouseReturnReportScreenState extends State<LeaderWarehouseRetur
                   controller: _lostQtyController,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(labelText: 'Số lượng mất'),
-                  validator: (val) => val == null || val.isEmpty ? 'Nhập số lượng' : null,
+                  validator: (val) =>
+                      val == null || val.isEmpty ? 'Nhập số lượng' : null,
                 ),
               ),
             ],
@@ -227,9 +247,12 @@ class _LeaderWarehouseReturnReportScreenState extends State<LeaderWarehouseRetur
                 decoration: BoxDecoration(
                   color: AppColors.primaryLight.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-                  border: Border.all(color: AppColors.primary.withOpacity(0.3), style: BorderStyle.values[1]),
+                  border: Border.all(
+                      color: AppColors.primary.withOpacity(0.3),
+                      style: BorderStyle.values[1]),
                 ),
-                child: const Icon(Icons.add_a_photo_outlined, color: AppColors.primary),
+                child: const Icon(Icons.add_a_photo_outlined,
+                    color: AppColors.primary),
               ),
             );
           }
@@ -245,7 +268,8 @@ class _LeaderWarehouseReturnReportScreenState extends State<LeaderWarehouseRetur
                 child: Center(
                   child: Text(
                     _photos[index],
-                    style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 8, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -261,8 +285,10 @@ class _LeaderWarehouseReturnReportScreenState extends State<LeaderWarehouseRetur
                   },
                   child: Container(
                     padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                    child: const Icon(Icons.close, size: 10, color: Colors.white),
+                    decoration: const BoxDecoration(
+                        color: Colors.red, shape: BoxShape.circle),
+                    child:
+                        const Icon(Icons.close, size: 10, color: Colors.white),
                   ),
                 ),
               ),
@@ -279,7 +305,10 @@ class _LeaderWarehouseReturnReportScreenState extends State<LeaderWarehouseRetur
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, -4)),
+          BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 10,
+              offset: const Offset(0, -4)),
         ],
       ),
       child: Row(

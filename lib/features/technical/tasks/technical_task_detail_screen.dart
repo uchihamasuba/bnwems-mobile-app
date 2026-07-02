@@ -13,7 +13,8 @@ class TechnicalTaskDetailScreen extends StatefulWidget {
   const TechnicalTaskDetailScreen({super.key});
 
   @override
-  State<TechnicalTaskDetailScreen> createState() => _TechnicalTaskDetailScreenState();
+  State<TechnicalTaskDetailScreen> createState() =>
+      _TechnicalTaskDetailScreenState();
 }
 
 class _TechnicalTaskDetailScreenState extends State<TechnicalTaskDetailScreen> {
@@ -26,14 +27,17 @@ class _TechnicalTaskDetailScreenState extends State<TechnicalTaskDetailScreen> {
     if (!_initialized) {
       final args = ModalRoute.of(context)?.settings.arguments as String?;
       final taskId = args ?? 'TSK-TEC-003';
-      _task = MockData.tasks.firstWhere((t) => t.id == taskId, orElse: () => MockData.tasks.firstWhere((t) => t.id == 'TSK-TEC-003'));
+      _task = MockData.tasks.firstWhere((t) => t.id == taskId,
+          orElse: () =>
+              MockData.tasks.firstWhere((t) => t.id == 'TSK-TEC-003'));
       _initialized = true;
     }
   }
 
   void _toggleChecklistItem(int index) {
     setState(() {
-      _task.checklistItems[index].isCompleted = !_task.checklistItems[index].isCompleted;
+      _task.checklistItems[index].isCompleted =
+          !_task.checklistItems[index].isCompleted;
       final allDone = _task.checklistItems.every((item) => item.isCompleted);
       _task.status = allDone ? 'completed' : 'inProgress';
     });
@@ -50,7 +54,8 @@ class _TechnicalTaskDetailScreenState extends State<TechnicalTaskDetailScreen> {
   Widget build(BuildContext context) {
     // Find Leader of this order
     final leaderName = MockData.orders
-        .firstWhere((o) => o.id == _task.orderCode, orElse: () => MockData.orders.first)
+        .firstWhere((o) => o.id == _task.orderCode,
+            orElse: () => MockData.orders.first)
         .leaderStaffName;
 
     return AppScaffold(
@@ -71,13 +76,21 @@ class _TechnicalTaskDetailScreenState extends State<TechnicalTaskDetailScreen> {
                   AppSizes.spacingL,
 
                   // Leader in charge
-                  const Text('Leader chỉ đạo trực tiếp:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary)),
+                  const Text('Leader chỉ đạo trực tiếp:',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: AppColors.textPrimary)),
                   AppSizes.spacingM,
                   _buildLeaderCard(leaderName),
                   AppSizes.spacingL,
 
                   // Checklist section
-                  const Text('Checklist thi công kỹ thuật:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary)),
+                  const Text('Checklist thi công kỹ thuật:',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: AppColors.textPrimary)),
                   AppSizes.spacingM,
                   _buildChecklistCard(),
                   const SizedBox(height: AppSizes.xxl),
@@ -101,7 +114,10 @@ class _TechnicalTaskDetailScreenState extends State<TechnicalTaskDetailScreen> {
             children: [
               Text(
                 'MÃ ĐƠN: ${_task.orderCode}',
-                style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 13),
+                style: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13),
               ),
               StatusChip(label: _task.status),
             ],
@@ -109,17 +125,22 @@ class _TechnicalTaskDetailScreenState extends State<TechnicalTaskDetailScreen> {
           const SizedBox(height: AppSizes.s),
           Text(
             _task.taskName,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary),
+            style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: AppColors.textPrimary),
           ),
           const Divider(height: 24, color: AppColors.divider),
           Row(
             children: [
-              const Icon(Icons.location_on_outlined, size: 16, color: AppColors.textSecondary),
+              const Icon(Icons.location_on_outlined,
+                  size: 16, color: AppColors.textSecondary),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   _task.location,
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                  style: const TextStyle(
+                      color: AppColors.textSecondary, fontSize: 13),
                 ),
               ),
             ],
@@ -127,11 +148,13 @@ class _TechnicalTaskDetailScreenState extends State<TechnicalTaskDetailScreen> {
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textSecondary),
+              const Icon(Icons.calendar_today_outlined,
+                  size: 14, color: AppColors.textSecondary),
               const SizedBox(width: 8),
               Text(
                 'Thời gian: ${_task.scheduledTime.hour}:${_task.scheduledTime.minute.toString().padLeft(2, '0')} - ${_task.scheduledTime.day}/${_task.scheduledTime.month}/${_task.scheduledTime.year}',
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                style: const TextStyle(
+                    color: AppColors.textSecondary, fontSize: 13),
               ),
             ],
           ),
@@ -144,18 +167,24 @@ class _TechnicalTaskDetailScreenState extends State<TechnicalTaskDetailScreen> {
     return InfoCard(
       child: Row(
         children: [
-          const Icon(Icons.supervisor_account_outlined, color: AppColors.primary, size: 24),
+          const Icon(Icons.supervisor_account_outlined,
+              color: AppColors.primary, size: 24),
           const SizedBox(width: 12),
           Text(
             name,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+            style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary),
           ),
           const Spacer(),
           IconButton(
-            icon: const Icon(Icons.phone_android_rounded, color: AppColors.primary, size: 20),
+            icon: const Icon(Icons.phone_android_rounded,
+                color: AppColors.primary, size: 20),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Đang kết nối cuộc gọi với Leader $name...')),
+                SnackBar(
+                    content: Text('Đang kết nối cuộc gọi với Leader $name...')),
               );
             },
           ),
@@ -182,13 +211,17 @@ class _TechnicalTaskDetailScreenState extends State<TechnicalTaskDetailScreen> {
                   item.label,
                   style: TextStyle(
                     fontSize: 13,
-                    color: item.isCompleted ? AppColors.textLight : AppColors.textPrimary,
-                    decoration: item.isCompleted ? TextDecoration.lineThrough : null,
+                    color: item.isCompleted
+                        ? AppColors.textLight
+                        : AppColors.textPrimary,
+                    decoration:
+                        item.isCompleted ? TextDecoration.lineThrough : null,
                   ),
                 ),
                 activeColor: AppColors.primary,
                 controlAffinity: ListTileControlAffinity.leading,
-                contentPadding: const EdgeInsets.symmetric(horizontal: AppSizes.m),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: AppSizes.m),
               );
             },
           ),
@@ -203,7 +236,10 @@ class _TechnicalTaskDetailScreenState extends State<TechnicalTaskDetailScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, -4)),
+          BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 10,
+              offset: const Offset(0, -4)),
         ],
       ),
       child: Row(

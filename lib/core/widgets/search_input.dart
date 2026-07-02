@@ -38,13 +38,15 @@ class SearchInput extends StatelessWidget {
         style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
         decoration: InputDecoration(
           hintText: hintText,
-          prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textSecondary),
+          prefixIcon:
+              const Icon(Icons.search_rounded, color: AppColors.textSecondary),
           suffixIcon: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (controller != null && controller!.text.isNotEmpty)
                 IconButton(
-                  icon: const Icon(Icons.clear_rounded, size: 20, color: AppColors.textSecondary),
+                  icon: const Icon(Icons.clear_rounded,
+                      size: 20, color: AppColors.textSecondary),
                   onPressed: () {
                     controller!.clear();
                     if (onClear != null) onClear!();
@@ -53,7 +55,8 @@ class SearchInput extends StatelessWidget {
                 ),
               if (onFilterTap != null)
                 IconButton(
-                  icon: const Icon(Icons.filter_list_rounded, color: AppColors.primary),
+                  icon: const Icon(Icons.filter_list_rounded,
+                      color: AppColors.primary),
                   onPressed: onFilterTap,
                 ),
             ],

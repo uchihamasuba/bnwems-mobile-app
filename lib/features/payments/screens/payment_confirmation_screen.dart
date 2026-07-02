@@ -18,7 +18,8 @@ class PaymentConfirmationScreen extends StatefulWidget {
   const PaymentConfirmationScreen({super.key});
 
   @override
-  State<PaymentConfirmationScreen> createState() => _PaymentConfirmationScreenState();
+  State<PaymentConfirmationScreen> createState() =>
+      _PaymentConfirmationScreenState();
 }
 
 class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
@@ -33,10 +34,12 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   Future<_PaymentScreenData> _loadData() async {
     final args = ModalRoute.of(context)?.settings.arguments;
     String? paymentId;
+    String? paymentRequestId;
     String? orderId;
 
     if (args is ManagerPaymentRouteArgs) {
       paymentId = args.paymentId;
+      paymentRequestId = args.paymentRequestId;
       orderId = args.orderId;
     } else if (args is String) {
       orderId = args;
@@ -46,6 +49,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
       return _PaymentScreenData(
         orderId: null,
         paymentId: paymentId,
+        paymentRequestId: paymentRequestId,
         payments: const [],
       );
     }
@@ -54,6 +58,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     return _PaymentScreenData(
       orderId: orderId,
       paymentId: paymentId,
+      paymentRequestId: paymentRequestId,
       payments: payments,
     );
   }
@@ -74,7 +79,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
           return AppScaffold(
             useSafeArea: true,
             appBar: const CustomAppBar(
-              title: 'Thanh toan',
+              title: 'Thanh toán',
               showBackButton: true,
             ),
             body: ErrorState(
@@ -88,7 +93,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
         return AppScaffold(
           useSafeArea: true,
           appBar: const CustomAppBar(
-            title: 'Thanh toan',
+            title: 'Thanh toán',
             showBackButton: true,
           ),
           body: SingleChildScrollView(
@@ -104,8 +109,9 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                   const SizedBox(
                     height: 240,
                     child: EmptyState(
-                      title: 'Khong co du lieu giao dich',
-                      description: 'Hay mo tu chi tiet don hang de xem giao dich.',
+                      title: 'Không có dữ liệu giao dịch',
+                      description:
+                          'Hãy mở từ chi tiết đơn hàng để xem giao dịch.',
                       icon: Icons.payments_outlined,
                     ),
                   )
@@ -113,8 +119,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                   const SizedBox(
                     height: 240,
                     child: EmptyState(
-                      title: 'Chua co giao dich',
-                      description: 'Khong co giao dich nao cho order nay.',
+                      title: 'Chưa có giao dịch',
+                      description: 'Không có giao dịch nào cho đơn hàng này.',
                       icon: Icons.receipt_long_outlined,
                     ),
                   )
@@ -124,7 +130,12 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                       padding: const EdgeInsets.only(bottom: AppSizes.m),
                       child: _PaymentCard(
                         payment: payment,
-                        highlighted: data.paymentId != null && data.paymentId == payment.paymentId,
+                        highlighted:
+                            (data.paymentRequestId != null &&
+                                    data.paymentRequestId ==
+                                        payment.paymentRequestId) ||
+                                (data.paymentId != null &&
+                                    data.paymentId == payment.paymentId),
                       ),
                     ),
                   ),
@@ -146,7 +157,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Order: ${data.orderId ?? '--'}',
+                  'Đơn hàng: ${data.orderId ?? '--'}',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -155,13 +166,17 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'So giao dich: ${data.payments.length}',
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  'Số giao dịch: ${data.payments.length}',
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.textSecondary),
                 ),
               ],
             ),
           ),
-          if (data.paymentId != null && data.paymentId!.isNotEmpty)
+          if (data.paymentRequestId != null &&
+              data.paymentRequestId!.isNotEmpty)
+            StatusChip(label: data.paymentRequestId!)
+          else if (data.paymentId != null && data.paymentId!.isNotEmpty)
             StatusChip(label: data.paymentId!)
           else
             const StatusChip(label: 'API'),
@@ -183,8 +198,10 @@ class _PaymentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InfoCard(
-      borderColor: highlighted ? AppColors.primary.withValues(alpha: 0.32) : null,
-      color: highlighted ? AppColors.primaryLight.withValues(alpha: 0.35) : null,
+      borderColor:
+          highlighted ? AppColors.primary.withValues(alpha: 0.32) : null,
+      color:
+          highlighted ? AppColors.primaryLight.withValues(alpha: 0.35) : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -192,7 +209,7 @@ class _PaymentCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Payment ${payment.paymentId}',
+                  'Giao dịch ${payment.paymentId}',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
@@ -200,21 +217,25 @@ class _PaymentCard extends StatelessWidget {
                   ),
                 ),
               ),
-              StatusChip(label: payment.status.isEmpty ? 'Unknown' : payment.status),
+              StatusChip(
+                  label: payment.status.isEmpty
+                      ? 'Chưa xác định'
+                      : payment.status),
             ],
           ),
           const SizedBox(height: 10),
-          _DetailRow(label: 'Loai', value: payment.paymentType),
-          const SizedBox(height: 8),
-          _DetailRow(label: 'So tien', value: payment.amount.toStringAsFixed(0)),
+          _DetailRow(label: 'Loại', value: payment.paymentType),
           const SizedBox(height: 8),
           _DetailRow(
-            label: 'Phuong thuc',
+              label: 'Số tiền', value: payment.amount.toStringAsFixed(0)),
+          const SizedBox(height: 8),
+          _DetailRow(
+            label: 'Phương thức',
             value: payment.paymentMethod.isEmpty ? '--' : payment.paymentMethod,
           ),
           const SizedBox(height: 8),
           _DetailRow(
-            label: 'Ngay ghi nhan',
+            label: 'Ngày ghi nhận',
             value: payment.paymentDate == null
                 ? '--'
                 : '${payment.paymentDate!.day}/${payment.paymentDate!.month}/${payment.paymentDate!.year}',
@@ -264,10 +285,12 @@ class _PaymentScreenData {
   const _PaymentScreenData({
     required this.orderId,
     required this.paymentId,
+    required this.paymentRequestId,
     required this.payments,
   });
 
   final String? orderId;
   final String? paymentId;
+  final String? paymentRequestId;
   final List<ManagerPaymentRecord> payments;
 }

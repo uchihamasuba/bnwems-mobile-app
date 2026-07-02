@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../core/constants/app_strings.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../models/user_model.dart';
@@ -20,7 +21,6 @@ class _LoginScreenState extends State<LoginScreen>
 
   bool _obscurePassword = true;
   bool _isLoading = false;
-  bool _isCheckingSession = true;
   String? _errorMessage;
 
   late final AnimationController _heroAnimationController;
@@ -29,7 +29,6 @@ class _LoginScreenState extends State<LoginScreen>
   late final Animation<double> _rotateAnimation;
   late final Animation<double> _sparkleAnimation;
 
-  // Elegant wedding palette
   static const Color _ivory = Color(0xFFFBF8F3);
   static const Color _warmIvory = Color(0xFFF6EFE7);
   static const Color _champagne = Color(0xFFEDE0CE);
@@ -88,24 +87,6 @@ class _LoginScreenState extends State<LoginScreen>
         curve: Curves.easeInOut,
       ),
     );
-
-    _restoreSession();
-  }
-
-  Future<void> _restoreSession() async {
-    try {
-      final storedUser = await AuthService.getStoredUser();
-      if (!mounted) return;
-
-      if (storedUser != null) {
-        Navigator.pushReplacementNamed(context, _routeForRole(storedUser.role));
-        return;
-      }
-    } catch (_) {}
-
-    if (mounted) {
-      setState(() => _isCheckingSession = false);
-    }
   }
 
   Future<void> _handleLogin() async {
@@ -127,31 +108,17 @@ class _LoginScreenState extends State<LoginScreen>
       if (!mounted) return;
 
       final user = result['user'] as UserModel;
-      Navigator.pushReplacementNamed(context, _routeForRole(user.role));
+      Navigator.pushReplacementNamed(context, AppRoutes.forRole(user.role));
     } on ApiException catch (error) {
       setState(() => _errorMessage = error.message);
     } catch (_) {
       setState(() {
-        _errorMessage = 'Không thể kết nối tới server. Vui lòng thử lại.';
+        _errorMessage = 'Không thể kết nối tới máy chủ. Vui lòng thử lại.';
       });
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
       }
-    }
-  }
-
-  String _routeForRole(String role) {
-    switch (role) {
-      case 'ADMIN':
-      case 'MANAGER':
-        return AppRoutes.managerDashboard;
-      case 'LEADER_STAFF':
-        return AppRoutes.leaderDashboard;
-      case 'TECHNICAL_STAFF':
-        return AppRoutes.technicalDashboard;
-      default:
-        return AppRoutes.managerDashboard;
     }
   }
 
@@ -165,17 +132,6 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
-    if (_isCheckingSession) {
-      return const Scaffold(
-        backgroundColor: _ivory,
-        body: Center(
-          child: CircularProgressIndicator(
-            color: _deepRose,
-          ),
-        ),
-      );
-    }
-
     return Scaffold(
       backgroundColor: _ivory,
       body: GestureDetector(
@@ -638,31 +594,31 @@ class _LoginScreenState extends State<LoginScreen>
         ),
         child: _isLoading
             ? const SizedBox(
-          width: 22,
-          height: 22,
-          child: CircularProgressIndicator(
-            strokeWidth: 2.5,
-            color: Colors.white,
-          ),
-        )
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: Colors.white,
+                ),
+              )
             : const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Đăng nhập',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.2,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Đăng nhập',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 18,
+                  ),
+                ],
               ),
-            ),
-            SizedBox(width: 8),
-            Icon(
-              Icons.arrow_forward_rounded,
-              size: 18,
-            ),
-          ],
-        ),
       ),
     );
   }

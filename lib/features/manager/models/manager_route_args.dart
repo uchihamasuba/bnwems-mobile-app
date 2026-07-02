@@ -33,10 +33,12 @@ class ManagerChangeRequestRouteArgs {
 class ManagerPaymentRouteArgs {
   const ManagerPaymentRouteArgs({
     this.paymentId,
+    this.paymentRequestId,
     this.orderId,
   });
 
   final String? paymentId;
+  final String? paymentRequestId;
   final String? orderId;
 }
 

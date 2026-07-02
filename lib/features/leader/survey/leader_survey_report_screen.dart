@@ -12,7 +12,8 @@ class LeaderSurveyReportScreen extends StatefulWidget {
   const LeaderSurveyReportScreen({super.key});
 
   @override
-  State<LeaderSurveyReportScreen> createState() => _LeaderSurveyReportScreenState();
+  State<LeaderSurveyReportScreen> createState() =>
+      _LeaderSurveyReportScreenState();
 }
 
 class _LeaderSurveyReportScreenState extends State<LeaderSurveyReportScreen> {
@@ -20,10 +21,14 @@ class _LeaderSurveyReportScreenState extends State<LeaderSurveyReportScreen> {
   String _selectedOrder = 'ORD-2026-002';
   final _areaController = TextEditingController(text: '85.0');
   final _widthController = TextEditingController(text: '2.5');
-  final _siteController = TextEditingController(text: 'Mặt sân xi măng bằng phẳng trước nhà riêng');
-  final _transportController = TextEditingController(text: 'Đẩy tay xe kéo thủ công khoảng cách 40m từ bãi đỗ xe tải');
-  final _riskController = TextEditingController(text: 'Đường dây điện chăng ngang sân ở độ cao 3.2m');
-  final _notesController = TextEditingController(text: 'Khách yêu cầu lắp rạp cao che nắng đỉnh chữ A cao dưới 2.8m');
+  final _siteController =
+      TextEditingController(text: 'Mặt sân xi măng bằng phẳng trước nhà riêng');
+  final _transportController = TextEditingController(
+      text: 'Đẩy tay xe kéo thủ công khoảng cách 40m từ bãi đỗ xe tải');
+  final _riskController = TextEditingController(
+      text: 'Đường dây điện chăng ngang sân ở độ cao 3.2m');
+  final _notesController = TextEditingController(
+      text: 'Khách yêu cầu lắp rạp cao che nắng đỉnh chữ A cao dưới 2.8m');
   final List<String> _photos = ['survey_photo_entrance', 'survey_photo_yard'];
   bool _isSubmitting = false;
 
@@ -33,7 +38,7 @@ class _LeaderSurveyReportScreenState extends State<LeaderSurveyReportScreen> {
       Future.delayed(const Duration(milliseconds: 800), () {
         if (!mounted) return;
         setState(() => _isSubmitting = false);
-        
+
         // Add new survey report instance to mock db
         MockData.surveyReports.add(
           SurveyReport(
@@ -55,7 +60,8 @@ class _LeaderSurveyReportScreenState extends State<LeaderSurveyReportScreen> {
         );
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Báo cáo khảo sát đã được gửi đến Manager!')),
+          const SnackBar(
+              content: Text('Báo cáo khảo sát đã được gửi đến Manager!')),
         );
         Navigator.pop(context);
       });
@@ -81,25 +87,41 @@ class _LeaderSurveyReportScreenState extends State<LeaderSurveyReportScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Select Order
-                    const Text('Chọn đơn hàng sự kiện:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary)),
+                    const Text('Chọn đơn hàng sự kiện:',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: AppColors.textPrimary)),
                     const SizedBox(height: 6),
                     _buildOrderDropdownCard(),
                     AppSizes.spacingL,
 
                     // Dimensions
-                    const Text('Kích thước hiện trường:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary)),
+                    const Text('Kích thước hiện trường:',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: AppColors.textPrimary)),
                     const SizedBox(height: 6),
                     _buildDimensionsCard(),
                     AppSizes.spacingL,
 
                     // Detail Conditions
-                    const Text('Chi tiết khảo sát điều kiện thi công:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary)),
+                    const Text('Chi tiết khảo sát điều kiện thi công:',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: AppColors.textPrimary)),
                     const SizedBox(height: 6),
                     _buildDetailsFormCard(),
                     AppSizes.spacingL,
 
                     // Attached pictures
-                    const Text('Hình ảnh hiện trường mặt bằng:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary)),
+                    const Text('Hình ảnh hiện trường mặt bằng:',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: AppColors.textPrimary)),
                     const SizedBox(height: 6),
                     _buildPhotosCard(),
                     const SizedBox(height: AppSizes.xxl),
@@ -119,7 +141,8 @@ class _LeaderSurveyReportScreenState extends State<LeaderSurveyReportScreen> {
       child: DropdownButtonFormField<String>(
         isExpanded: true,
         value: _selectedOrder,
-        style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+            color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         items: MockData.orders.map((order) {
           return DropdownMenuItem(
             value: order.id,
@@ -156,7 +179,8 @@ class _LeaderSurveyReportScreenState extends State<LeaderSurveyReportScreen> {
                 labelText: 'Diện tích rạp (m²)',
                 prefixIcon: Icon(Icons.aspect_ratio),
               ),
-              validator: (val) => val == null || val.isEmpty ? 'Nhập diện tích' : null,
+              validator: (val) =>
+                  val == null || val.isEmpty ? 'Nhập diện tích' : null,
             ),
           ),
           const SizedBox(width: AppSizes.m),
@@ -168,7 +192,8 @@ class _LeaderSurveyReportScreenState extends State<LeaderSurveyReportScreen> {
                 labelText: 'Lối vào rộng (m)',
                 prefixIcon: Icon(Icons.width_normal_rounded),
               ),
-              validator: (val) => val == null || val.isEmpty ? 'Nhập chiều rộng' : null,
+              validator: (val) =>
+                  val == null || val.isEmpty ? 'Nhập chiều rộng' : null,
             ),
           ),
         ],
@@ -183,13 +208,15 @@ class _LeaderSurveyReportScreenState extends State<LeaderSurveyReportScreen> {
           TextFormField(
             controller: _siteController,
             maxLines: 2,
-            decoration: const InputDecoration(labelText: 'Vị trí lắp ráp & Bề mặt nền'),
+            decoration:
+                const InputDecoration(labelText: 'Vị trí lắp ráp & Bề mặt nền'),
           ),
           const SizedBox(height: AppSizes.m),
           TextFormField(
             controller: _transportController,
             maxLines: 2,
-            decoration: const InputDecoration(labelText: 'Điều kiện vận chuyển vật tư'),
+            decoration:
+                const InputDecoration(labelText: 'Điều kiện vận chuyển vật tư'),
           ),
           const SizedBox(height: AppSizes.m),
           TextFormField(
@@ -201,7 +228,8 @@ class _LeaderSurveyReportScreenState extends State<LeaderSurveyReportScreen> {
           TextFormField(
             controller: _notesController,
             maxLines: 2,
-            decoration: const InputDecoration(labelText: 'Ghi chú kiến nghị khác'),
+            decoration:
+                const InputDecoration(labelText: 'Ghi chú kiến nghị khác'),
           ),
         ],
       ),
@@ -234,9 +262,12 @@ class _LeaderSurveyReportScreenState extends State<LeaderSurveyReportScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.primaryLight.withOpacity(0.5),
                       borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-                      border: Border.all(color: AppColors.primary.withOpacity(0.3), style: BorderStyle.values[1]),
+                      border: Border.all(
+                          color: AppColors.primary.withOpacity(0.3),
+                          style: BorderStyle.values[1]),
                     ),
-                    child: const Icon(Icons.add_a_photo_outlined, color: AppColors.primary),
+                    child: const Icon(Icons.add_a_photo_outlined,
+                        color: AppColors.primary),
                   ),
                 );
               }
@@ -252,7 +283,8 @@ class _LeaderSurveyReportScreenState extends State<LeaderSurveyReportScreen> {
                     child: Center(
                       child: Text(
                         _photos[index],
-                        style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                            fontSize: 8, fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -268,8 +300,10 @@ class _LeaderSurveyReportScreenState extends State<LeaderSurveyReportScreen> {
                       },
                       child: Container(
                         padding: const EdgeInsets.all(2),
-                        decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                        child: const Icon(Icons.close, size: 10, color: Colors.white),
+                        decoration: const BoxDecoration(
+                            color: Colors.red, shape: BoxShape.circle),
+                        child: const Icon(Icons.close,
+                            size: 10, color: Colors.white),
                       ),
                     ),
                   ),
@@ -288,7 +322,10 @@ class _LeaderSurveyReportScreenState extends State<LeaderSurveyReportScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, -4)),
+          BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 10,
+              offset: const Offset(0, -4)),
         ],
       ),
       child: Row(

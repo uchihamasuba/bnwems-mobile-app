@@ -10,10 +10,12 @@ class TechnicalInstallationChecklistScreen extends StatefulWidget {
   const TechnicalInstallationChecklistScreen({super.key});
 
   @override
-  State<TechnicalInstallationChecklistScreen> createState() => _TechnicalInstallationChecklistScreenState();
+  State<TechnicalInstallationChecklistScreen> createState() =>
+      _TechnicalInstallationChecklistScreenState();
 }
 
-class _TechnicalInstallationChecklistScreenState extends State<TechnicalInstallationChecklistScreen> {
+class _TechnicalInstallationChecklistScreenState
+    extends State<TechnicalInstallationChecklistScreen> {
   final List<Map<String, dynamic>> _checklist = [
     {'label': 'Dựng khung truss sắt nâng rạp chính', 'done': true},
     {'label': 'Căng bạt cưới che mưa đỉnh rạp', 'done': true},
@@ -31,7 +33,9 @@ class _TechnicalInstallationChecklistScreenState extends State<TechnicalInstalla
 
   void _submitInstallation() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Cập nhật tiến trình thi công hoàn thiện hiện trường!')),
+      const SnackBar(
+          content:
+              Text('Cập nhật tiến trình thi công hoàn thiện hiện trường!')),
     );
     Navigator.pop(context);
   }
@@ -61,8 +65,11 @@ class _TechnicalInstallationChecklistScreenState extends State<TechnicalInstalla
                       item['label'],
                       style: TextStyle(
                         fontSize: 13,
-                        color: item['done'] ? AppColors.textLight : AppColors.textPrimary,
-                        decoration: item['done'] ? TextDecoration.lineThrough : null,
+                        color: item['done']
+                            ? AppColors.textLight
+                            : AppColors.textPrimary,
+                        decoration:
+                            item['done'] ? TextDecoration.lineThrough : null,
                       ),
                     ),
                     activeColor: AppColors.primary,
@@ -85,7 +92,10 @@ class _TechnicalInstallationChecklistScreenState extends State<TechnicalInstalla
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, -4)),
+          BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 10,
+              offset: const Offset(0, -4)),
         ],
       ),
       child: Row(

@@ -10,18 +10,33 @@ class TechnicalWarehouseReturnScreen extends StatefulWidget {
   const TechnicalWarehouseReturnScreen({super.key});
 
   @override
-  State<TechnicalWarehouseReturnScreen> createState() => _TechnicalWarehouseReturnScreenState();
+  State<TechnicalWarehouseReturnScreen> createState() =>
+      _TechnicalWarehouseReturnScreenState();
 }
 
-class _TechnicalWarehouseReturnScreenState extends State<TechnicalWarehouseReturnScreen> {
+class _TechnicalWarehouseReturnScreenState
+    extends State<TechnicalWarehouseReturnScreen> {
   final List<Map<String, dynamic>> _returnList = [
-    {'name': 'Ghế Chiavari Trắng', 'expected': 100, 'returned': 98, 'damaged': 2, 'lost': 0},
-    {'name': 'Đèn LED Par 50W', 'expected': 20, 'returned': 20, 'damaged': 0, 'lost': 0},
+    {
+      'name': 'Ghế Chiavari Trắng',
+      'expected': 100,
+      'returned': 98,
+      'damaged': 2,
+      'lost': 0
+    },
+    {
+      'name': 'Đèn LED Par 50W',
+      'expected': 20,
+      'returned': 20,
+      'damaged': 0,
+      'lost': 0
+    },
   ];
 
   void _submitWarehouseReturn() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Báo cáo bàn giao thiết bị hoàn kho thành công!')),
+      const SnackBar(
+          content: Text('Báo cáo bàn giao thiết bị hoàn kho thành công!')),
     );
     Navigator.pop(context);
   }
@@ -49,21 +64,35 @@ class _TechnicalWarehouseReturnScreenState extends State<TechnicalWarehouseRetur
                     children: [
                       Text(
                         item['name'],
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: AppColors.textPrimary),
                       ),
                       const SizedBox(height: 6),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Bàn giao về kho: ${item['returned']}/${item['expected']}', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                          Text(
+                              'Bàn giao về kho: ${item['returned']}/${item['expected']}',
+                              style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary)),
                           Row(
                             children: [
                               if (item['damaged'] > 0)
                                 Container(
                                   margin: const EdgeInsets.only(right: 6),
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(color: AppColors.errorLight, borderRadius: BorderRadius.circular(4)),
-                                  child: Text('Cần bảo trì: ${item['damaged']}', style: const TextStyle(color: AppColors.error, fontSize: 10, fontWeight: FontWeight.bold)),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                      color: AppColors.errorLight,
+                                      borderRadius: BorderRadius.circular(4)),
+                                  child: Text('Cần bảo trì: ${item['damaged']}',
+                                      style: const TextStyle(
+                                          color: AppColors.error,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold)),
                                 ),
                             ],
                           )
@@ -87,7 +116,10 @@ class _TechnicalWarehouseReturnScreenState extends State<TechnicalWarehouseRetur
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, -4)),
+          BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 10,
+              offset: const Offset(0, -4)),
         ],
       ),
       child: Row(

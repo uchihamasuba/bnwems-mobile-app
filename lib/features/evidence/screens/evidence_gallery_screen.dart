@@ -20,11 +20,11 @@ class EvidenceGalleryScreen extends StatefulWidget {
 }
 
 class _EvidenceGalleryScreenState extends State<EvidenceGalleryScreen> {
-  String _selectedType = 'Tat ca';
+  String _selectedType = 'Tất cả';
   late Future<_EvidenceScreenData> _future;
 
   final List<String> _filters = [
-    'Tat ca',
+    'Tất cả',
     'Survey',
     'Payment',
   ];
@@ -77,7 +77,7 @@ class _EvidenceGalleryScreenState extends State<EvidenceGalleryScreen> {
       ),
     ];
 
-    if (_selectedType == 'Tat ca') {
+    if (_selectedType == 'Tất cả') {
       return items;
     }
 
@@ -146,7 +146,7 @@ class _EvidenceGalleryScreenState extends State<EvidenceGalleryScreen> {
             const Divider(height: 1),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Dong'),
+              child: const Text('Đóng'),
             ),
           ],
         ),
@@ -170,7 +170,7 @@ class _EvidenceGalleryScreenState extends State<EvidenceGalleryScreen> {
           return AppScaffold(
             useSafeArea: true,
             appBar: const CustomAppBar(
-              title: 'Thu vien minh chung',
+              title: 'Thư viện minh chứng',
               showBackButton: false,
             ),
             body: ErrorState(message: snapshot.error.toString()),
@@ -183,7 +183,7 @@ class _EvidenceGalleryScreenState extends State<EvidenceGalleryScreen> {
         return AppScaffold(
           useSafeArea: true,
           appBar: const CustomAppBar(
-            title: 'Thu vien minh chung',
+            title: 'Thư viện minh chứng',
             showBackButton: false,
           ),
           body: Column(
@@ -208,7 +208,8 @@ class _EvidenceGalleryScreenState extends State<EvidenceGalleryScreen> {
                         selected: isSelected,
                         labelStyle: TextStyle(
                           fontSize: 12,
-                          color: isSelected ? Colors.white : AppColors.textPrimary,
+                          color:
+                              isSelected ? Colors.white : AppColors.textPrimary,
                           fontWeight:
                               isSelected ? FontWeight.bold : FontWeight.normal,
                         ),
@@ -235,8 +236,9 @@ class _EvidenceGalleryScreenState extends State<EvidenceGalleryScreen> {
                     ? const Padding(
                         padding: EdgeInsets.all(AppSizes.m),
                         child: EmptyState(
-                          title: 'Khong co du lieu minh chung',
-                          description: 'Hay mo tu chi tiet don hang de xem minh chung.',
+                          title: 'Không có dữ liệu minh chứng',
+                          description:
+                              'Hãy mở từ chi tiết đơn hàng để xem minh chứng.',
                           icon: Icons.folder_off_outlined,
                         ),
                       )
@@ -244,8 +246,9 @@ class _EvidenceGalleryScreenState extends State<EvidenceGalleryScreen> {
                         ? const Padding(
                             padding: EdgeInsets.all(AppSizes.m),
                             child: EmptyState(
-                              title: 'Khong co minh chung',
-                              description: 'Khong co minh chung nao cho order nay.',
+                              title: 'Không có minh chứng',
+                              description:
+                                  'Không có minh chứng nào cho đơn hàng này.',
                               icon: Icons.photo_library_outlined,
                             ),
                           )

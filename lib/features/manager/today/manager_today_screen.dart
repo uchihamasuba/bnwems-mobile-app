@@ -27,15 +27,15 @@ class ManagerTodayScreen extends StatefulWidget {
 
 class _ManagerTodayScreenState extends State<ManagerTodayScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _activeFilter = 'Tat ca';
+  String _activeFilter = 'Tất cả';
   String _query = '';
   late Future<_TodayData> _future;
 
   static const List<String> _filters = [
-    'Tat ca',
-    'Dang xu ly',
-    'Co task',
-    'Co tien do',
+    'Tất cả',
+    'Đang xử lý',
+    'Có task',
+    'Có tiến độ',
   ];
 
   @override
@@ -98,7 +98,8 @@ class _ManagerTodayScreenState extends State<ManagerTodayScreen> {
 
         final data = snapshot.data!;
         final list = _filterOrders(data);
-        final latestProgress = data.fieldProgress.isNotEmpty ? data.fieldProgress.first : null;
+        final latestProgress =
+            data.fieldProgress.isNotEmpty ? data.fieldProgress.first : null;
 
         return AppScaffold(
           useSafeArea: true,
@@ -108,9 +109,9 @@ class _ManagerTodayScreenState extends State<ManagerTodayScreen> {
               padding: const EdgeInsets.all(AppSizes.m),
               children: [
                 const ManagerAppHeader(
-                  title: 'Don hang va task hom nay',
+                  title: 'Đơn hàng và task hôm nay',
                   subtitle:
-                      'Tap trung cac dau viec trong ngay de Manager theo doi bang du lieu backend that.',
+                      'Tập trung các đầu việc trong ngày để quản lý theo dõi bằng dữ liệu backend thật.',
                 ),
                 const SizedBox(height: AppSizes.l),
                 LayoutBuilder(
@@ -125,7 +126,7 @@ class _ManagerTodayScreenState extends State<ManagerTodayScreen> {
                       physics: const NeverScrollableScrollPhysics(),
                       children: [
                         ManagerStatisticCard(
-                          label: 'Don hom nay',
+                          label: 'Đơn hôm nay',
                           value: '${data.orders.length}',
                           icon: Icons.today_rounded,
                           color: Colors.blue,
@@ -133,7 +134,7 @@ class _ManagerTodayScreenState extends State<ManagerTodayScreen> {
                           compact: true,
                         ),
                         ManagerStatisticCard(
-                          label: 'Task dang chay',
+                          label: 'Task đang chạy',
                           value: '${data.tasks.length}',
                           icon: Icons.sync_rounded,
                           color: Colors.orange,
@@ -141,7 +142,7 @@ class _ManagerTodayScreenState extends State<ManagerTodayScreen> {
                           compact: true,
                         ),
                         ManagerStatisticCard(
-                          label: 'Feed tien do',
+                          label: 'Feed tiến độ',
                           value: '${data.fieldProgress.length}',
                           icon: Icons.timeline_rounded,
                           color: Colors.red,
@@ -181,7 +182,7 @@ class _ManagerTodayScreenState extends State<ManagerTodayScreen> {
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      'Cap nhat tien do moi nhat',
+                                      'Cập nhật tiến độ mới nhất',
                                       style: TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w700,
@@ -197,7 +198,8 @@ class _ManagerTodayScreenState extends State<ManagerTodayScreen> {
                               const SizedBox(height: 6),
                               Text(
                                 latestProgress.currentTask ?? '--',
-                                style: const TextStyle(fontSize: 12, height: 1.4),
+                                style:
+                                    const TextStyle(fontSize: 12, height: 1.4),
                               ),
                               const SizedBox(height: 8),
                               Text(
@@ -217,7 +219,7 @@ class _ManagerTodayScreenState extends State<ManagerTodayScreen> {
                 const SizedBox(height: AppSizes.l),
                 SearchInput(
                   controller: _searchController,
-                  hintText: 'Tim theo ma don, dia diem...',
+                  hintText: 'Tìm theo mã đơn, địa điểm...',
                   onChanged: (value) => setState(() => _query = value.trim()),
                   onClear: () => setState(() => _query = ''),
                 ),
@@ -232,7 +234,8 @@ class _ManagerTodayScreenState extends State<ManagerTodayScreen> {
                         child: ChoiceChip(
                           label: Text(filter),
                           selected: isSelected,
-                          onSelected: (_) => setState(() => _activeFilter = filter),
+                          onSelected: (_) =>
+                              setState(() => _activeFilter = filter),
                         ),
                       );
                     }).toList(),
@@ -240,17 +243,18 @@ class _ManagerTodayScreenState extends State<ManagerTodayScreen> {
                 ),
                 const SizedBox(height: AppSizes.l),
                 ManagerSectionHeader(
-                  title: 'Danh sach can theo doi',
+                  title: 'Danh sách cần theo dõi',
                   subtitle:
-                      'Dang hien thi ${list.length} don theo du lieu GET /orders trong ngay.',
+                      'Đang hiển thị ${list.length} đơn theo dữ liệu GET /orders trong ngày.',
                 ),
                 const SizedBox(height: AppSizes.m),
                 if (list.isEmpty)
                   const SizedBox(
                     height: 320,
                     child: EmptyState(
-                      title: 'Khong co du lieu phu hop',
-                      description: 'Khong co don nao phu hop voi bo loc hien tai.',
+                      title: 'Không có dữ liệu phù hợp',
+                      description:
+                          'Không có đơn nào phù hợp với bộ lọc hiện tại.',
                       icon: Icons.search_off_rounded,
                     ),
                   )
@@ -260,7 +264,8 @@ class _ManagerTodayScreenState extends State<ManagerTodayScreen> {
                       padding: const EdgeInsets.only(bottom: AppSizes.m),
                       child: _TodayOrderCard(
                         order: order,
-                        hasLiveTask: data.tasks.any((task) => task.orderId == order.orderId),
+                        hasLiveTask: data.tasks
+                            .any((task) => task.orderId == order.orderId),
                       ),
                     ),
                   ),
@@ -274,15 +279,17 @@ class _ManagerTodayScreenState extends State<ManagerTodayScreen> {
 
   List<ManagerOrderSummary> _filterOrders(_TodayData data) {
     return data.orders.where((order) {
-      final matchesQuery =
-          _query.isEmpty ||
+      final matchesQuery = _query.isEmpty ||
           order.orderNumber.toLowerCase().contains(_query.toLowerCase()) ||
-          (order.venueAddress ?? '').toLowerCase().contains(_query.toLowerCase());
+          (order.venueAddress ?? '')
+              .toLowerCase()
+              .contains(_query.toLowerCase());
 
       final matchesFilter = switch (_activeFilter) {
-        'Dang xu ly' => order.status.toLowerCase().contains('progress'),
-        'Co task' => data.tasks.any((task) => task.orderId == order.orderId),
-        'Co tien do' => data.fieldProgress.any((item) => item.orderId == order.orderId),
+        'Đang xử lý' => order.status.toLowerCase().contains('progress'),
+        'Có task' => data.tasks.any((task) => task.orderId == order.orderId),
+        'Có tiến độ' =>
+          data.fieldProgress.any((item) => item.orderId == order.orderId),
         _ => true,
       };
 
@@ -337,14 +344,14 @@ class _TodayOrderCard extends StatelessWidget {
               ),
               if (hasLiveTask)
                 const ManagerPriorityBadge(
-                  label: 'Task dang chay',
+                  label: 'Task đang chạy',
                   compact: true,
                 ),
             ],
           ),
           const SizedBox(height: 10),
           Text(
-            order.venueAddress ?? 'Chua co dia diem',
+            order.venueAddress ?? 'Chưa có địa điểm',
             style: const TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w700,
@@ -356,7 +363,9 @@ class _TodayOrderCard extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              StatusChip(label: order.status.isEmpty ? 'Unknown' : order.status),
+              StatusChip(
+                label: order.status.isEmpty ? 'Chưa xác định' : order.status,
+              ),
               if (order.currentTask != null && order.currentTask!.isNotEmpty)
                 StatusChip(label: order.currentTask!),
             ],
@@ -364,8 +373,8 @@ class _TodayOrderCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             order.eventStartDate == null
-                ? 'Ngay to chuc: chua co'
-                : 'Ngay to chuc: ${order.eventStartDate!.day}/${order.eventStartDate!.month}/${order.eventStartDate!.year}',
+                ? 'Ngày tổ chức: chưa có'
+                : 'Ngày tổ chức: ${order.eventStartDate!.day}/${order.eventStartDate!.month}/${order.eventStartDate!.year}',
             style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 12,

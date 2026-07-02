@@ -24,11 +24,33 @@ void main() {
 
     test('role helpers should identify dashboards correctly', () {
       final manager = UserModel.fromJson({...validJson, 'role': 'MANAGER'});
-      final technical = UserModel.fromJson({...validJson, 'role': 'TECHNICAL_STAFF'});
+      final technical =
+          UserModel.fromJson({...validJson, 'role': 'TECHNICAL_STAFF'});
 
       expect(manager.isManager, isTrue);
+      expect(manager.canUseMobileApp, isTrue);
       expect(manager.isLeader, isFalse);
       expect(technical.isTechnical, isTrue);
+    });
+
+    test('fromJson should normalize backend role names', () {
+      final manager = UserModel.fromJson({
+        ...validJson,
+        'role': {'roleName': 'Manager'}
+      });
+      final leader = UserModel.fromJson({
+        ...validJson,
+        'role': {'roleName': 'Leader Staff'}
+      });
+      final admin = UserModel.fromJson({
+        ...validJson,
+        'role': {'roleName': 'Admin'}
+      });
+
+      expect(manager.role, 'MANAGER');
+      expect(leader.role, 'LEADER_STAFF');
+      expect(admin.isAdmin, isTrue);
+      expect(admin.canUseMobileApp, isFalse);
     });
 
     test('toJson should serialize back to correct map', () {

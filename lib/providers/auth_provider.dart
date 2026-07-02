@@ -18,13 +18,15 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> login({required String username, required String password}) async {
+  Future<bool> login(
+      {required String username, required String password}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      final result = await AuthService.login(username: username, password: password);
+      final result =
+          await AuthService.login(username: username, password: password);
       _user = result['user'] as UserModel;
       _isLoading = false;
       notifyListeners();
@@ -35,7 +37,7 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     } on Exception {
-      _error = 'Khong the dang nhap. Vui long thu lai.';
+      _error = 'Không thể đăng nhập. Vui lòng thử lại.';
       _isLoading = false;
       notifyListeners();
       return false;

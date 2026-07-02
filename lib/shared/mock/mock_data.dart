@@ -35,7 +35,8 @@ class MockData {
       id: 'NTF001',
       title: 'Thi công hiện trường bị trễ',
       orderCode: 'ORD-2026-001',
-      message: 'Tác vụ "Lắp đặt khung bạt chính tầng 5" quá hạn 2 tiếng chưa báo hoàn thành.',
+      message:
+          'Tác vụ "Lắp đặt khung bạt chính tầng 5" quá hạn 2 tiếng chưa báo hoàn thành.',
       type: 'Field Operation',
       priority: 'High',
       createdAt: DateTime.now().subtract(const Duration(minutes: 30)),
@@ -46,7 +47,8 @@ class MockData {
       id: 'NTF002',
       title: 'Báo cáo khảo sát mới cần duyệt',
       orderCode: 'ORD-2026-002',
-      message: 'Leader Phan Anh Tuấn đã nộp báo cáo khảo sát hiện trường tại Riverside Palace.',
+      message:
+          'Leader Phan Anh Tuấn đã nộp báo cáo khảo sát hiện trường tại Riverside Palace.',
       type: 'Survey',
       priority: 'Medium',
       createdAt: DateTime.now().subtract(const Duration(hours: 1)),
@@ -57,7 +59,8 @@ class MockData {
       id: 'NTF003',
       title: 'Yêu cầu đổi thiết bị hiện trường',
       orderCode: 'ORD-2026-001',
-      message: 'Leader đề xuất: Thêm 20 đèn LED 50W lối đi ngoài trời, phát sinh 2,000,000đ.',
+      message:
+          'Leader đề xuất: Thêm 20 đèn LED 50W lối đi ngoài trời, phát sinh 2,000,000đ.',
       type: 'Change Request',
       priority: 'High',
       createdAt: DateTime.now().subtract(const Duration(hours: 2)),
@@ -68,7 +71,8 @@ class MockData {
       id: 'NTF004',
       title: 'Xác nhận cọc tiền chờ duyệt',
       orderCode: 'ORD-2026-002',
-      message: 'Khách hàng Phạm Minh Tuấn đã tải lên minh chứng chuyển khoản cọc 30,000,000đ.',
+      message:
+          'Khách hàng Phạm Minh Tuấn đã tải lên minh chứng chuyển khoản cọc 30,000,000đ.',
       type: 'Payment',
       priority: 'High',
       createdAt: DateTime.now().subtract(const Duration(hours: 3)),
@@ -79,7 +83,8 @@ class MockData {
       id: 'NTF005',
       title: 'Báo cáo hỏng hóc vật tư',
       orderCode: 'ORD-2026-003',
-      message: 'Biên bản thu hồi ORD-003 phát hiện gãy 2 chân ghế Chiavari có nệm.',
+      message:
+          'Biên bản thu hồi ORD-003 phát hiện gãy 2 chân ghế Chiavari có nệm.',
       type: 'Damage/Loss',
       priority: 'Medium',
       createdAt: DateTime.now().subtract(const Duration(days: 1)),
@@ -156,10 +161,13 @@ class MockData {
       status: 'inProgress',
       priority: 'High',
       checklistItems: [
-        ChecklistItem(label: 'Đo kích thước mặt bằng dựng rạp', isCompleted: true),
-        ChecklistItem(label: 'Kiểm tra lối đi xe tải/xe ba gác', isCompleted: true),
+        ChecklistItem(
+            label: 'Đo kích thước mặt bằng dựng rạp', isCompleted: true),
+        ChecklistItem(
+            label: 'Kiểm tra lối đi xe tải/xe ba gác', isCompleted: true),
         ChecklistItem(label: 'Đo độ cao dây điện cản trở', isCompleted: false),
-        ChecklistItem(label: 'Chụp hình các góc lối vào & sân khấu', isCompleted: false),
+        ChecklistItem(
+            label: 'Chụp hình các góc lối vào & sân khấu', isCompleted: false),
       ],
     ),
     MobileTask(
@@ -173,9 +181,13 @@ class MockData {
       status: 'inProgress',
       priority: 'High',
       checklistItems: [
-        ChecklistItem(label: 'Giám sát thợ bốc dỡ từ xe tải', isCompleted: true),
-        ChecklistItem(label: 'Nghiệm thu khung sắt lắp đặt ban đầu', isCompleted: true),
-        ChecklistItem(label: 'Chụp hình bạt che kéo xong gửi Manager', isCompleted: false),
+        ChecklistItem(
+            label: 'Giám sát thợ bốc dỡ từ xe tải', isCompleted: true),
+        ChecklistItem(
+            label: 'Nghiệm thu khung sắt lắp đặt ban đầu', isCompleted: true),
+        ChecklistItem(
+            label: 'Chụp hình bạt che kéo xong gửi Manager',
+            isCompleted: false),
       ],
     ),
     MobileTask(
@@ -189,8 +201,12 @@ class MockData {
       status: 'completed',
       priority: 'Medium',
       checklistItems: [
-        ChecklistItem(label: 'Ký biên bản bàn giao hoàn tất cho cô dâu chú rể', isCompleted: true),
-        ChecklistItem(label: 'Thu hồi ảnh hóa đơn thanh toán tiền mặt phát sinh', isCompleted: true),
+        ChecklistItem(
+            label: 'Ký biên bản bàn giao hoàn tất cho cô dâu chú rể',
+            isCompleted: true),
+        ChecklistItem(
+            label: 'Thu hồi ảnh hóa đơn thanh toán tiền mặt phát sinh',
+            isCompleted: true),
       ],
     ),
 
@@ -223,8 +239,10 @@ class MockData {
       priority: 'High',
       checklistItems: [
         ChecklistItem(label: 'Bốc hàng lên xe tải 3.5T', isCompleted: true),
-        ChecklistItem(label: 'Lái xe/vận chuyển đến địa điểm', isCompleted: true),
-        ChecklistItem(label: 'Hạ đồ xuống sân rooftop Gem Center', isCompleted: true),
+        ChecklistItem(
+            label: 'Lái xe/vận chuyển đến địa điểm', isCompleted: true),
+        ChecklistItem(
+            label: 'Hạ đồ xuống sân rooftop Gem Center', isCompleted: true),
       ],
     ),
     MobileTask(
@@ -238,11 +256,15 @@ class MockData {
       status: 'inProgress',
       priority: 'High',
       checklistItems: [
-        ChecklistItem(label: 'Dựng khung truss sắt nâng bạt', isCompleted: true),
+        ChecklistItem(
+            label: 'Dựng khung truss sắt nâng bạt', isCompleted: true),
         ChecklistItem(label: 'Lắp bạt che mưa đỉnh rạp', isCompleted: true),
-        ChecklistItem(label: 'Rải cỏ nhân tạo khu vực làm lễ', isCompleted: false),
-        ChecklistItem(label: 'Xếp bàn tròn đón khách (15 bàn)', isCompleted: false),
-        ChecklistItem(label: 'Đi dây điện chạy loa đài âm thanh', isCompleted: false),
+        ChecklistItem(
+            label: 'Rải cỏ nhân tạo khu vực làm lễ', isCompleted: false),
+        ChecklistItem(
+            label: 'Xếp bàn tròn đón khách (15 bàn)', isCompleted: false),
+        ChecklistItem(
+            label: 'Đi dây điện chạy loa đài âm thanh', isCompleted: false),
       ],
     ),
     MobileTask(
@@ -256,9 +278,11 @@ class MockData {
       status: 'completed',
       priority: 'Medium',
       checklistItems: [
-        ChecklistItem(label: 'Tháo dỡ âm thanh ánh sáng sân khấu', isCompleted: true),
+        ChecklistItem(
+            label: 'Tháo dỡ âm thanh ánh sáng sân khấu', isCompleted: true),
         ChecklistItem(label: 'Xếp gọn ghế Chiavari', isCompleted: true),
-        ChecklistItem(label: 'Quét dọn rác thi công hiện trường', isCompleted: true),
+        ChecklistItem(
+            label: 'Quét dọn rác thi công hiện trường', isCompleted: true),
       ],
     ),
     MobileTask(
@@ -272,8 +296,10 @@ class MockData {
       status: 'completed',
       priority: 'Medium',
       checklistItems: [
-        ChecklistItem(label: 'Kiểm đếm ghế Chiavari (Gãy 2 chiếc)', isCompleted: true),
-        ChecklistItem(label: 'Cất loa JBL về khu vực lưu trữ', isCompleted: true),
+        ChecklistItem(
+            label: 'Kiểm đếm ghế Chiavari (Gãy 2 chiếc)', isCompleted: true),
+        ChecklistItem(
+            label: 'Cất loa JBL về khu vực lưu trữ', isCompleted: true),
       ],
     ),
   ];
@@ -289,10 +315,14 @@ class MockData {
       surveyDate: DateTime.now().subtract(const Duration(hours: 6)),
       areaSize: 84.0,
       entranceWidth: 2.2,
-      installationPosition: 'Sân xi măng trước cửa nhà riêng. Nhỏ hẹp, mặt bằng phẳng.',
-      transportationCondition: 'Sử dụng xe đẩy tay vận chuyển thủ công từ xe tải cách 50m.',
-      constructionRisk: 'Vướng đường dây cáp quang viễn thông bắc ngang qua sân ở độ cao 3m.',
-      notes: 'Cần mang theo sào nâng đỡ dây cáp khi dựng mái bạt cưới. Kiến nghị dùng loại rạp mini 6m x 12m chiều cao đỉnh dưới 2.8m.',
+      installationPosition:
+          'Sân xi măng trước cửa nhà riêng. Nhỏ hẹp, mặt bằng phẳng.',
+      transportationCondition:
+          'Sử dụng xe đẩy tay vận chuyển thủ công từ xe tải cách 50m.',
+      constructionRisk:
+          'Vướng đường dây cáp quang viễn thông bắc ngang qua sân ở độ cao 3m.',
+      notes:
+          'Cần mang theo sào nâng đỡ dây cáp khi dựng mái bạt cưới. Kiến nghị dùng loại rạp mini 6m x 12m chiều cao đỉnh dưới 2.8m.',
       photoUrls: const ['survey_gate_01', 'survey_yard_02'],
       approvalStatus: 'Pending',
     ),
@@ -307,10 +337,12 @@ class MockData {
       requestType: 'Add',
       itemName: 'Đèn LED âm trần 50W trang trí thêm',
       quantity: 20,
-      reason: 'Khách hàng muốn thắp sáng thêm khu vực lối đi ngoài trời lúc tối muộn khi đón khách.',
+      reason:
+          'Khách hàng muốn thắp sáng thêm khu vực lối đi ngoài trời lúc tối muộn khi đón khách.',
       costImpact: 2000000.0,
       inventoryAvailability: 'Có sẵn tại Kho Q7 (còn 90 chiếc)',
-      noteFromLeader: 'Đã tập hợp sẵn tại hiện trường sự kiện, thợ lắp ráp chờ phê duyệt từ Manager.',
+      noteFromLeader:
+          'Đã tập hợp sẵn tại hiện trường sự kiện, thợ lắp ráp chờ phê duyệt từ Manager.',
       evidenceUrls: const ['cr_led_item_photo'],
       approvalStatus: 'Pending',
     ),
@@ -453,7 +485,8 @@ class MockData {
         status: 'inProgress',
         updatedBy: 'Nguyễn Văn Minh',
         updatedAt: '10:15 24/06',
-        note: 'Đang tiến hành lắp ráp khung truss treo đèn và rải thảm cỏ nhân tạo.',
+        note:
+            'Đang tiến hành lắp ráp khung truss treo đèn và rải thảm cỏ nhân tạo.',
         evidenceCount: 1,
       ),
       FieldProgressStep(

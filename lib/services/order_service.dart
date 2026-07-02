@@ -7,7 +7,9 @@ class OrderService {
     final queryParams = status != null ? '?status=$status' : '';
     final response = await ApiService.get('/orders$queryParams');
     final List<dynamic> data = response['data'] as List<dynamic>;
-    return data.map((e) => OrderModel.fromJson(e as Map<String, dynamic>)).toList();
+    return data
+        .map((e) => OrderModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   /// GET /api/v1/orders/:id

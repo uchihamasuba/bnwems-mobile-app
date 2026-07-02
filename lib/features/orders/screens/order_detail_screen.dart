@@ -45,7 +45,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Future<_OrderDetailData> _loadData(String orderId) async {
     if (orderId.isEmpty) {
-      throw Exception('Khong tim thay orderId de tai chi tiet don hang.');
+      throw Exception('Không tìm thấy orderId để tải chi tiết đơn hàng.');
     }
 
     final order = await ManagerMobileService.getOrderDetail(orderId);
@@ -68,7 +68,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     ManagerSurveyReport? surveyReport;
     if (surveyTask != null) {
       try {
-        surveyReport = await ManagerMobileService.getSurveyReport(surveyTask.workTaskId);
+        surveyReport =
+            await ManagerMobileService.getSurveyReport(surveyTask.workTaskId);
       } catch (_) {
         surveyReport = null;
       }
@@ -108,7 +109,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           return AppScaffold(
             useSafeArea: true,
             appBar: const CustomAppBar(
-              title: 'Chi tiet don hang',
+              title: 'Chi tiết đơn hàng',
               showBackButton: true,
             ),
             body: ErrorState(
@@ -122,7 +123,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         return AppScaffold(
           useSafeArea: true,
           appBar: CustomAppBar(
-            title: 'Chi tiet ${data.order.orderNumber}',
+            title: 'Chi tiết ${data.order.orderNumber}',
             showBackButton: true,
           ),
           body: Column(
@@ -139,19 +140,19 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         _buildActionBanner(data),
                         AppSizes.spacingL,
                       ],
-                      const SectionTitle(title: 'Thong tin khach hang'),
+                      const SectionTitle(title: 'Thông tin khách hàng'),
                       AppSizes.spacingM,
                       _buildCustomerCard(data.order),
                       AppSizes.spacingL,
-                      const SectionTitle(title: 'Thanh toan'),
+                      const SectionTitle(title: 'Thanh toán'),
                       AppSizes.spacingM,
                       _buildPaymentSummaryCard(data.payments),
                       AppSizes.spacingL,
-                      const SectionTitle(title: 'Van hanh va tien do'),
+                      const SectionTitle(title: 'Vận hành và tiến độ'),
                       AppSizes.spacingM,
                       _buildOperationsCard(context, isManager, data),
                       AppSizes.spacingL,
-                      const SectionTitle(title: 'Minh chung moi nhat'),
+                      const SectionTitle(title: 'Minh chứng mới nhất'),
                       AppSizes.spacingM,
                       _buildEvidencePreview(data.evidenceBundle),
                       const SizedBox(height: AppSizes.xxl),
@@ -176,7 +177,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'MA DON: ${order.orderNumber}',
+                'MÃ ĐƠN: ${order.orderNumber}',
                 style: const TextStyle(
                   color: AppColors.primary,
                   fontSize: 16,
@@ -197,7 +198,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  order.venueAddress ?? 'Chua co dia diem',
+                  order.venueAddress ?? 'Chưa có địa điểm',
                   style: const TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 13,
@@ -217,8 +218,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               const SizedBox(width: 8),
               Text(
                 order.eventStartDate == null
-                    ? 'Ngay to chuc: chua co'
-                    : 'Ngay to chuc: ${order.eventStartDate!.day}/${order.eventStartDate!.month}/${order.eventStartDate!.year}',
+                    ? 'Ngày tổ chức: chưa có'
+                    : 'Ngày tổ chức: ${order.eventStartDate!.day}/${order.eventStartDate!.month}/${order.eventStartDate!.year}',
                 style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 13,
@@ -250,7 +251,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               Icon(Icons.gpp_maybe_rounded, color: AppColors.warning, size: 20),
               SizedBox(width: 8),
               Text(
-                'Tac vu co the xu ly',
+                'Tác vụ có thể xử lý',
                 style: TextStyle(
                   color: AppColors.warning,
                   fontWeight: FontWeight.bold,
@@ -262,7 +263,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           const SizedBox(height: 8),
           if (hasSurvey)
             _buildActionBannerItem(
-              title: 'Xem bao cao khao sat that tu task survey',
+              title: 'Xem báo cáo khảo sát thật từ task survey',
               onTap: () => Navigator.pushNamed(
                 context,
                 AppRoutes.managerSurveyReview,
@@ -273,7 +274,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               ),
             ),
           _buildActionBannerItem(
-            title: 'Xem tien do field task',
+            title: 'Xem tiến độ field task',
             onTap: () => Navigator.pushNamed(
               context,
               AppRoutes.managerFieldProgress,
@@ -282,7 +283,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
           if (hasPayments)
             _buildActionBannerItem(
-              title: 'Xem danh sach thanh toan',
+              title: 'Xem danh sách thanh toán',
               onTap: () => Navigator.pushNamed(
                 context,
                 AppRoutes.managerPaymentConfirmation,
@@ -337,14 +338,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       child: Column(
         children: [
           _buildDetailRow(
-            'Ho va ten',
-            customer?.fullName ?? 'Chua co du lieu',
+            'Họ và tên',
+            customer?.fullName ?? 'Chưa có dữ liệu',
             Icons.person_outline_rounded,
           ),
           const Divider(height: 20, color: AppColors.divider),
           _buildDetailRow(
-            'So dien thoai',
-            customer?.phone ?? 'Chua co du lieu',
+            'Số điện thoại',
+            customer?.phone ?? 'Chưa có dữ liệu',
             Icons.phone_android_rounded,
           ),
         ],
@@ -353,14 +354,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   Widget _buildPaymentSummaryCard(List<ManagerPaymentRecord> payments) {
-    final totalPaid = payments.fold<double>(0, (sum, item) => sum + item.amount);
+    final totalPaid =
+        payments.fold<double>(0, (sum, item) => sum + item.amount);
 
     return InfoCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'So giao dich: ${payments.length}',
+            'Số giao dịch: ${payments.length}',
             style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 14,
@@ -369,7 +371,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Tong da ghi nhan: ${_formatCurrency(totalPaid)}',
+            'Tổng đã ghi nhận: ${_formatCurrency(totalPaid)}',
             style: const TextStyle(
               color: AppColors.success,
               fontSize: 14,
@@ -380,32 +382,32 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           if (payments.isEmpty)
             const SizedBox(
               height: 180,
-                    child: EmptyState(
-                      title: 'Chua co payment',
-                      description: 'Khong co giao dich nao cho order nay.',
-                      icon: Icons.receipt_long_outlined,
-                    ),
-                  )
+              child: EmptyState(
+                title: 'Chưa có thanh toán',
+                description: 'Không có giao dịch nào cho đơn hàng này.',
+                icon: Icons.receipt_long_outlined,
+              ),
+            )
           else
             ...payments.take(3).map(
-              (payment) => Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '${payment.paymentType} - ${payment.paymentMethod.isEmpty ? 'Unknown method' : payment.paymentMethod}',
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
+                  (payment) => Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${payment.paymentType} - ${payment.paymentMethod.isEmpty ? 'Chưa rõ phương thức' : payment.paymentMethod}',
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 12,
+                            ),
+                          ),
                         ),
-                      ),
+                        StatusChip(label: payment.status),
+                      ],
                     ),
-                    StatusChip(label: payment.status),
-                  ],
+                  ),
                 ),
-              ),
-            ),
         ],
       ),
     );
@@ -428,7 +430,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
               ),
               StatusChip(
-                label: data.surveyReport == null ? 'Chua co' : 'Da nop',
+                label: data.surveyReport == null ? 'Chưa có' : 'Đã nộp',
               ),
             ],
           ),
@@ -441,7 +443,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
               ),
               StatusChip(
-                label: data.verification?.verificationStatus ?? 'Chua san sang',
+                label: data.verification?.verificationStatus ?? 'Chưa sẵn sàng',
               ),
             ],
           ),
@@ -450,7 +452,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             onTap: () {
               Navigator.pushNamed(
                 context,
-                isManager ? AppRoutes.managerFieldProgress : AppRoutes.fieldProgress,
+                isManager
+                    ? AppRoutes.managerFieldProgress
+                    : AppRoutes.fieldProgress,
                 arguments: ManagerOrderRouteArgs(orderId: data.order.orderId),
               );
             },
@@ -461,10 +465,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.timeline_rounded, color: AppColors.primary, size: 20),
+                      Icon(Icons.timeline_rounded,
+                          color: AppColors.primary, size: 20),
                       SizedBox(width: 8),
                       Text(
-                        'Xem tien trinh chi tiet',
+                        'Xem tiến trình chi tiết',
                         style: TextStyle(
                           color: AppColors.primary,
                           fontWeight: FontWeight.bold,
@@ -497,8 +502,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       return const SizedBox(
         height: 220,
         child: EmptyState(
-          title: 'Chua co minh chung',
-          description: 'Khong co survey evidence hoac payment evidence cho order nay.',
+          title: 'Chưa có minh chứng',
+          description:
+              'Không có survey evidence hoặc payment evidence cho đơn hàng này.',
           icon: Icons.photo_library_outlined,
         ),
       );
@@ -605,13 +611,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         children: [
           Expanded(
             child: PrimaryButton(
-              text: 'Thanh toan',
+              text: 'Thanh toán',
               icon: Icons.payments_outlined,
               onPressed: () {
                 Navigator.pushNamed(
                   context,
                   AppRoutes.managerPaymentConfirmation,
-                  arguments: ManagerPaymentRouteArgs(orderId: data.order.orderId),
+                  arguments:
+                      ManagerPaymentRouteArgs(orderId: data.order.orderId),
                 );
               },
             ),

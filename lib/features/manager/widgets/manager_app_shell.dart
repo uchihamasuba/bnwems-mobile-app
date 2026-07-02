@@ -46,13 +46,15 @@ class _ManagerAppShellState extends State<ManagerAppShell> {
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard_rounded, color: AppColors.primary),
-            label: 'Dashboard',
+            selectedIcon:
+                Icon(Icons.dashboard_rounded, color: AppColors.primary),
+            label: 'Tổng quan',
           ),
           NavigationDestination(
             icon: Icon(Icons.timeline_outlined),
-            selectedIcon: Icon(Icons.timeline_rounded, color: AppColors.primary),
-            label: 'Tien do',
+            selectedIcon:
+                Icon(Icons.timeline_rounded, color: AppColors.primary),
+            label: 'Tiến độ',
           ),
           NavigationDestination(
             icon: Icon(Icons.notifications_none_rounded),
@@ -60,17 +62,18 @@ class _ManagerAppShellState extends State<ManagerAppShell> {
               Icons.notifications_active_rounded,
               color: AppColors.primary,
             ),
-            label: 'Thong bao',
+            label: 'Thông báo',
           ),
           NavigationDestination(
             icon: Icon(Icons.fact_check_outlined),
-            selectedIcon: Icon(Icons.fact_check_rounded, color: AppColors.primary),
-            label: 'Duyet nhanh',
+            selectedIcon:
+                Icon(Icons.fact_check_rounded, color: AppColors.primary),
+            label: 'Duyệt nhanh',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline_rounded),
             selectedIcon: Icon(Icons.person_rounded, color: AppColors.primary),
-            label: 'Tai khoan',
+            label: 'Tài khoản',
           ),
         ],
       ),

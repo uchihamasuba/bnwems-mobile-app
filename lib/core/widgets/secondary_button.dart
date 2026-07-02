@@ -34,11 +34,11 @@ class SecondaryButton extends StatelessWidget {
         onPressed: isLoading ? null : onPressed,
         style: buttonStyle?.copyWith(
           side: borderColor != null
-              ? WidgetStateProperty.all(BorderSide(color: borderColor!, width: 1.5))
+              ? WidgetStateProperty.all(
+                  BorderSide(color: borderColor!, width: 1.5))
               : null,
-          foregroundColor: textColor != null
-              ? WidgetStateProperty.all(textColor)
-              : null,
+          foregroundColor:
+              textColor != null ? WidgetStateProperty.all(textColor) : null,
         ),
         child: isLoading
             ? SizedBox(

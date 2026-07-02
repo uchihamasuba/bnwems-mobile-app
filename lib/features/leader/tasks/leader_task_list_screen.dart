@@ -21,7 +21,8 @@ class _LeaderTaskListScreenState extends State<LeaderTaskListScreen> {
   String _activeTab = 'Đang làm';
 
   List<MobileTask> get _filteredTasks {
-    final leaderTasks = MockData.tasks.where((t) => t.assignedRole == UserRole.leader).toList();
+    final leaderTasks =
+        MockData.tasks.where((t) => t.assignedRole == UserRole.leader).toList();
     if (_activeTab == 'Đang làm') {
       return leaderTasks.where((t) => t.status != 'completed').toList();
     } else {
@@ -47,7 +48,7 @@ class _LeaderTaskListScreenState extends State<LeaderTaskListScreen> {
             ],
           ),
           const Divider(height: 1, color: AppColors.divider),
-          
+
           Expanded(
             child: _filteredTasks.isEmpty
                 ? const Center(
@@ -125,7 +126,10 @@ class _LeaderTaskListScreenState extends State<LeaderTaskListScreen> {
             children: [
               Text(
                 task.orderCode,
-                style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12),
+                style: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12),
               ),
               StatusChip(label: task.status),
             ],
@@ -133,17 +137,22 @@ class _LeaderTaskListScreenState extends State<LeaderTaskListScreen> {
           const SizedBox(height: 8),
           Text(
             task.taskName,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary),
+            style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: AppColors.textPrimary),
           ),
           const SizedBox(height: 6),
           Row(
             children: [
-              const Icon(Icons.location_on_outlined, size: 14, color: AppColors.textSecondary),
+              const Icon(Icons.location_on_outlined,
+                  size: 14, color: AppColors.textSecondary),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
                   task.location,
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.textSecondary),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -151,18 +160,24 @@ class _LeaderTaskListScreenState extends State<LeaderTaskListScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          
+
           // Checklist progress bar
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'Tiến độ: $doneCount/$totalCount checklist',
-                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.bold),
               ),
               Text(
                 '${(percent * 100).toStringAsFixed(0)}%',
-                style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold),
               ),
             ],
           ),

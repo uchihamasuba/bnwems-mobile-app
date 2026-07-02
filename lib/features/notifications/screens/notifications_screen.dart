@@ -24,18 +24,18 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  String _activeFilter = 'Tat ca';
+  String _activeFilter = 'Tất cả';
   bool _loading = true;
   String? _error;
   List<ManagerNotificationItem> _list = const [];
 
   static const List<String> _filters = [
-    'Tat ca',
-    'Tac vu',
-    'Khao sat',
-    'Thay doi',
-    'Thanh toan',
-    'Khac',
+    'Tất cả',
+    'Tác vụ',
+    'Khảo sát',
+    'Thay đổi',
+    'Thanh toán',
+    'Khác',
   ];
 
   @override
@@ -71,18 +71,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   List<ManagerNotificationItem> get _filteredNotifications {
-    if (_activeFilter == 'Tat ca') {
+    if (_activeFilter == 'Tất cả') {
       return _list;
     }
 
     return _list.where((item) {
       final type = _notificationBucket(item);
       return switch (_activeFilter) {
-        'Tac vu' => type == 'Tac vu',
-        'Khao sat' => type == 'Khao sat',
-        'Thay doi' => type == 'Thay doi',
-        'Thanh toan' => type == 'Thanh toan',
-        'Khac' => type == 'Khac',
+        'Tác vụ' => type == 'Tác vụ',
+        'Khảo sát' => type == 'Khảo sát',
+        'Thay đổi' => type == 'Thay đổi',
+        'Thanh toán' => type == 'Thanh toán',
+        'Khác' => type == 'Khác',
         _ => true,
       };
     }).toList();
@@ -94,7 +94,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
 
     try {
-      await ManagerMobileService.markNotificationRead(notification.notificationId);
+      await ManagerMobileService.markNotificationRead(
+          notification.notificationId);
       if (!mounted) {
         return;
       }
@@ -147,7 +148,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (refType.contains('payment')) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Mo don hang lien quan de xem giao dich.'),
+          content: Text('Mở đơn hàng liên quan để xem giao dịch.'),
         ),
       );
       return;
@@ -191,8 +192,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         padding: const EdgeInsets.all(AppSizes.m),
         children: [
           ManagerAppHeader(
-            title: 'Thong bao khan',
-            subtitle: 'Theo doi thong bao backend va dieu huong nhanh toi man hinh lien quan.',
+            title: 'Thông báo khẩn',
+            subtitle:
+                'Theo dõi thông báo backend và điều hướng nhanh tới màn hình liên quan.',
             trailing: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
@@ -200,7 +202,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Text(
-                '$unreadCount moi',
+                '$unreadCount mới',
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 12,
@@ -211,8 +213,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
           const SizedBox(height: AppSizes.l),
           const ManagerSectionHeader(
-            title: 'Bo loc thong bao',
-            subtitle: 'Phan loai nhanh theo nhom nghiep vu tu du lieu backend hien co.',
+            title: 'Bộ lọc thông báo',
+            subtitle:
+                'Phân loại nhanh theo nhóm nghiệp vụ từ dữ liệu backend hiện có.',
           ),
           const SizedBox(height: AppSizes.m),
           SingleChildScrollView(
@@ -233,19 +236,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
           const SizedBox(height: AppSizes.l),
           const ManagerSectionHeader(
-            title: 'Danh sach thong bao',
-            subtitle: 'Nhan vao de danh dau da doc va mo man hinh phu hop neu backend co refType/refId.',
+            title: 'Danh sách thông báo',
+            subtitle:
+                'Nhấn vào để đánh dấu đã đọc và mở màn hình phù hợp nếu backend có refType/refId.',
           ),
           const SizedBox(height: AppSizes.m),
           if (list.isEmpty)
             const SizedBox(
               height: 300,
-                    child: EmptyState(
-                      title: 'Khong co thong bao phu hop',
-                      description: 'Khong co thong bao nao cho bo loc hien tai.',
-                      icon: Icons.notifications_off_rounded,
-                    ),
-                  )
+              child: EmptyState(
+                title: 'Không có thông báo phù hợp',
+                description: 'Không có thông báo nào cho bộ lọc hiện tại.',
+                icon: Icons.notifications_off_rounded,
+              ),
+            )
           else
             ...list.map(
               (notification) => Padding(
@@ -269,21 +273,24 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   String _notificationBucket(ManagerNotificationItem notification) {
-    final raw = '${notification.type} ${notification.refType} ${notification.title}'
-        .toLowerCase();
+    final raw =
+        '${notification.type} ${notification.refType} ${notification.title}'
+            .toLowerCase();
     if (raw.contains('survey')) {
-      return 'Khao sat';
+      return 'Khảo sát';
     }
     if (raw.contains('change')) {
-      return 'Thay doi';
+      return 'Thay đổi';
     }
     if (raw.contains('payment')) {
-      return 'Thanh toan';
+      return 'Thanh toán';
     }
-    if (raw.contains('task') || raw.contains('order') || raw.contains('field')) {
-      return 'Tac vu';
+    if (raw.contains('task') ||
+        raw.contains('order') ||
+        raw.contains('field')) {
+      return 'Tác vụ';
     }
-    return 'Khac';
+    return 'Khác';
   }
 }
 
@@ -301,11 +308,13 @@ class _NotificationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUnread = !notification.isRead;
-    final isUrgent = typeLabel == 'Thanh toan' || typeLabel == 'Thay doi';
+    final isUrgent = typeLabel == 'Thanh toán' || typeLabel == 'Thay đổi';
 
     return InfoCard(
       onTap: onTap,
-      color: isUnread ? AppColors.primaryLight.withValues(alpha: 0.5) : Colors.white,
+      color: isUnread
+          ? AppColors.primaryLight.withValues(alpha: 0.5)
+          : Colors.white,
       borderColor: isUrgent
           ? AppColors.error.withValues(alpha: 0.24)
           : isUnread
@@ -338,12 +347,13 @@ class _NotificationCard extends StatelessWidget {
                       style: TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 14,
-                        fontWeight: isUnread ? FontWeight.w800 : FontWeight.w700,
+                        fontWeight:
+                            isUnread ? FontWeight.w800 : FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      notification.refType ?? 'No reference',
+                      notification.refType ?? 'Không có liên kết',
                       style: const TextStyle(
                         color: AppColors.primary,
                         fontSize: 11,
@@ -358,7 +368,7 @@ class _NotificationCard extends StatelessWidget {
                 children: [
                   if (isUrgent)
                     const ManagerPriorityBadge(
-                      label: 'Can xu ly',
+                      label: 'Cần xử lý',
                       compact: true,
                     )
                   else
@@ -378,7 +388,7 @@ class _NotificationCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             notification.content.isEmpty
-                ? 'Khong co noi dung chi tiet.'
+                ? 'Không có nội dung chi tiết.'
                 : notification.content,
             style: const TextStyle(
               color: AppColors.textSecondary,
@@ -400,7 +410,7 @@ class _NotificationCard extends StatelessWidget {
                 ),
               if (isUnread) const SizedBox(width: 8),
               Text(
-                isUnread ? 'Chua doc' : 'Da doc',
+                isUnread ? 'Chưa đọc' : 'Đã đọc',
                 style: TextStyle(
                   color: isUnread ? AppColors.primary : AppColors.textSecondary,
                   fontSize: 11,
@@ -409,7 +419,7 @@ class _NotificationCard extends StatelessWidget {
               ),
               const Spacer(),
               const Text(
-                'Mo lien ket',
+                'Mở liên kết',
                 style: TextStyle(
                   color: AppColors.primary,
                   fontSize: 12,
@@ -432,13 +442,13 @@ class _NotificationCard extends StatelessWidget {
 
   IconData _iconForType(String type) {
     switch (type) {
-      case 'Khao sat':
+      case 'Khảo sát':
         return Icons.travel_explore_rounded;
-      case 'Thay doi':
+      case 'Thay đổi':
         return Icons.published_with_changes_rounded;
-      case 'Thanh toan':
+      case 'Thanh toán':
         return Icons.payments_outlined;
-      case 'Tac vu':
+      case 'Tác vụ':
         return Icons.assignment_late_outlined;
       default:
         return Icons.notifications_active_outlined;

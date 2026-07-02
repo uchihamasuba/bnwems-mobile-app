@@ -17,7 +17,8 @@ class LeaderDashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final leaderTasks = MockData.tasks
-        .where((t) => t.assignedRole == UserRole.leader && t.status != 'completed')
+        .where(
+            (t) => t.assignedRole == UserRole.leader && t.status != 'completed')
         .toList();
 
     return AppScaffold(
@@ -49,12 +50,10 @@ class LeaderDashboardScreen extends StatelessWidget {
             AppSizes.spacingM,
             _buildTaskSummaryBanner(leaderTasks.length),
             AppSizes.spacingL,
-
             const SectionTitle(title: 'Nghiệp vụ thực địa'),
             AppSizes.spacingM,
             _buildQuickActionsGrid(context),
             AppSizes.spacingL,
-
             const SectionTitle(title: 'Nhiệm vụ đang thực hiện'),
             AppSizes.spacingM,
             if (leaderTasks.isEmpty)
@@ -84,7 +83,8 @@ class LeaderDashboardScreen extends StatelessWidget {
         CircleAvatar(
           radius: 24,
           backgroundColor: AppColors.primaryLight,
-          child: const Icon(Icons.engineering_rounded, color: AppColors.primary, size: 24),
+          child: const Icon(Icons.engineering_rounded,
+              color: AppColors.primary, size: 24),
         ),
         const SizedBox(width: AppSizes.m),
         const Expanded(
@@ -93,7 +93,10 @@ class LeaderDashboardScreen extends StatelessWidget {
             children: [
               Text(
                 'Xin chào, Phan Anh Tuấn!',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary),
               ),
               Text(
                 'Leader giám sát và điều hành hiện trường',
@@ -116,7 +119,8 @@ class LeaderDashboardScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.assignment_turned_in_rounded, color: AppColors.primary, size: 24),
+          const Icon(Icons.assignment_turned_in_rounded,
+              color: AppColors.primary, size: 24),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -142,17 +146,44 @@ class LeaderDashboardScreen extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       childAspectRatio: 1.4,
       children: [
-        _buildActionCard(context, 'Báo Cáo Khảo Sát', Icons.explore_rounded, AppColors.info, AppRoutes.leaderSurveyReport),
-        _buildActionCard(context, 'Tạo Yêu Cầu Đổi', Icons.change_circle_rounded, AppColors.warning, AppRoutes.leaderCreateChangeRequest),
-        _buildActionCard(context, 'Ký Bàn Giao', Icons.assignment_turned_in_rounded, AppColors.success, AppRoutes.leaderHandoverReport),
-        _buildActionCard(context, 'Báo Hỏng / Mất', Icons.report_problem_rounded, AppColors.error, AppRoutes.leaderDamageLossReport),
-        _buildActionCard(context, 'Tải Biên Lai Cọc', Icons.receipt_long_rounded, AppColors.primary, AppRoutes.leaderPaymentEvidenceUpload),
-        _buildActionCard(context, 'Báo Cáo Hoàn Kho', Icons.keyboard_return_rounded, AppColors.secondary, AppRoutes.leaderWarehouseReturnReport),
+        _buildActionCard(context, 'Báo Cáo Khảo Sát', Icons.explore_rounded,
+            AppColors.info, AppRoutes.leaderSurveyReport),
+        _buildActionCard(
+            context,
+            'Tạo Yêu Cầu Đổi',
+            Icons.change_circle_rounded,
+            AppColors.warning,
+            AppRoutes.leaderCreateChangeRequest),
+        _buildActionCard(
+            context,
+            'Ký Bàn Giao',
+            Icons.assignment_turned_in_rounded,
+            AppColors.success,
+            AppRoutes.leaderHandoverReport),
+        _buildActionCard(
+            context,
+            'Báo Hỏng / Mất',
+            Icons.report_problem_rounded,
+            AppColors.error,
+            AppRoutes.leaderDamageLossReport),
+        _buildActionCard(
+            context,
+            'Tải Biên Lai Cọc',
+            Icons.receipt_long_rounded,
+            AppColors.primary,
+            AppRoutes.leaderPaymentEvidenceUpload),
+        _buildActionCard(
+            context,
+            'Báo Cáo Hoàn Kho',
+            Icons.keyboard_return_rounded,
+            AppColors.secondary,
+            AppRoutes.leaderWarehouseReturnReport),
       ],
     );
   }
 
-  Widget _buildActionCard(BuildContext context, String title, IconData icon, Color color, String route) {
+  Widget _buildActionCard(BuildContext context, String title, IconData icon,
+      Color color, String route) {
     return InfoCard(
       borderColor: color.withOpacity(0.2),
       onTap: () => Navigator.pushNamed(context, route),
@@ -162,12 +193,16 @@ class LeaderDashboardScreen extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+            decoration: BoxDecoration(
+                color: color.withOpacity(0.1), shape: BoxShape.circle),
             child: Icon(icon, color: color, size: 18),
           ),
           Text(
             title,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textPrimary),
+            style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: AppColors.textPrimary),
           ),
         ],
       ),
@@ -178,18 +213,23 @@ class LeaderDashboardScreen extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: AppSizes.s),
       child: InfoCard(
-        onTap: () => Navigator.pushNamed(context, AppRoutes.leaderTaskDetail, arguments: task.id),
+        onTap: () => Navigator.pushNamed(context, AppRoutes.leaderTaskDetail,
+            arguments: task.id),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: task.priority == 'High' ? AppColors.errorLight : AppColors.primaryLight,
+                color: task.priority == 'High'
+                    ? AppColors.errorLight
+                    : AppColors.primaryLight,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.assignment_late_outlined,
-                color: task.priority == 'High' ? AppColors.error : AppColors.primary,
+                color: task.priority == 'High'
+                    ? AppColors.error
+                    : AppColors.primary,
                 size: 20,
               ),
             ),
@@ -200,21 +240,24 @@ class LeaderDashboardScreen extends StatelessWidget {
                 children: [
                   Text(
                     task.taskName,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 13),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
                   Text(
                     'Đơn: ${task.orderCode} - Đơn vị: ${task.location}',
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                    style: const TextStyle(
+                        color: AppColors.textSecondary, fontSize: 11),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppColors.textLight),
+            const Icon(Icons.arrow_forward_ios_rounded,
+                size: 12, color: AppColors.textLight),
           ],
         ),
       ),

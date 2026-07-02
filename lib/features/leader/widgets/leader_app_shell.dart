@@ -40,7 +40,8 @@ class _LeaderAppShellState extends State<LeaderAppShell> {
         backgroundColor: Colors.white,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textSecondary,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+        selectedLabelStyle:
+            const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
         unselectedLabelStyle: const TextStyle(fontSize: 11),
         items: const [
           BottomNavigationBarItem(
@@ -50,17 +51,20 @@ class _LeaderAppShellState extends State<LeaderAppShell> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.assignment_outlined),
-            activeIcon: Icon(Icons.assignment_rounded, color: AppColors.primary),
+            activeIcon:
+                Icon(Icons.assignment_rounded, color: AppColors.primary),
             label: 'Nhiệm vụ',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.track_changes_outlined),
-            activeIcon: Icon(Icons.track_changes_rounded, color: AppColors.primary),
+            activeIcon:
+                Icon(Icons.track_changes_rounded, color: AppColors.primary),
             label: 'Tiến độ',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.photo_library_outlined),
-            activeIcon: Icon(Icons.photo_library_rounded, color: AppColors.primary),
+            activeIcon:
+                Icon(Icons.photo_library_rounded, color: AppColors.primary),
             label: 'Ảnh minh chứng',
           ),
         ],

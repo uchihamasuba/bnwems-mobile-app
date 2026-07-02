@@ -23,23 +23,23 @@ class ManagerApprovalsScreen extends StatefulWidget {
 }
 
 class _ManagerApprovalsScreenState extends State<ManagerApprovalsScreen> {
-  late Future<List<ManagerNotificationItem>> _future;
+  late Future<List<ManagerApprovalItem>> _future;
 
   @override
   void initState() {
     super.initState();
-    _future = ManagerMobileService.getNotifications(limit: 50);
+    _future = ManagerMobileService.getManagerApprovals();
   }
 
   void _reload() {
     setState(() {
-      _future = ManagerMobileService.getNotifications(limit: 50);
+      _future = ManagerMobileService.getManagerApprovals();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<ManagerNotificationItem>>(
+    return FutureBuilder<List<ManagerApprovalItem>>(
       future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
@@ -59,9 +59,7 @@ class _ManagerApprovalsScreenState extends State<ManagerApprovalsScreen> {
           );
         }
 
-        final items = snapshot.data!
-            .where((item) => _isApprovalNotification(item))
-            .toList();
+        final items = snapshot.data!;
 
         return AppScaffold(
           useSafeArea: true,
@@ -72,12 +70,13 @@ class _ManagerApprovalsScreenState extends State<ManagerApprovalsScreen> {
               children: [
                 const ManagerAppHeader(
                   title: 'Duyet nhanh',
-                  subtitle: 'Danh sach nay dung truc tiep tu notifications backend.',
+                  subtitle: 'Du lieu lay truc tiep tu manager approvals backend.',
                 ),
                 const SizedBox(height: AppSizes.l),
                 const ManagerSectionHeader(
-                  title: 'Thong bao can xu ly',
-                  subtitle: 'Survey, change request va payment se duoc loc tu notification feed.',
+                  title: 'Muc can xu ly',
+                  subtitle:
+                      'Survey report va change request duoc lay tu approval queue cua BE.',
                 ),
                 const SizedBox(height: AppSizes.m),
                 if (items.isEmpty)
@@ -85,7 +84,7 @@ class _ManagerApprovalsScreenState extends State<ManagerApprovalsScreen> {
                     height: 260,
                     child: EmptyState(
                       title: 'Khong co muc can xu ly',
-                      description: 'Khong co thong bao can xu ly.',
+                      description: 'Backend khong tra ve approval nao.',
                       icon: Icons.fact_check_outlined,
                     ),
                   )
@@ -93,7 +92,7 @@ class _ManagerApprovalsScreenState extends State<ManagerApprovalsScreen> {
                   ...items.map(
                     (item) => Padding(
                       padding: const EdgeInsets.only(bottom: AppSizes.m),
-                      child: _ApprovalNotificationCard(notification: item),
+                      child: _ApprovalCard(approval: item),
                     ),
                   ),
               ],
@@ -103,22 +102,17 @@ class _ManagerApprovalsScreenState extends State<ManagerApprovalsScreen> {
       },
     );
   }
-
-  bool _isApprovalNotification(ManagerNotificationItem item) {
-    final raw = '${item.type} ${item.refType} ${item.title}'.toLowerCase();
-    return raw.contains('survey') || raw.contains('change') || raw.contains('payment');
-  }
 }
 
-class _ApprovalNotificationCard extends StatelessWidget {
-  const _ApprovalNotificationCard({required this.notification});
+class _ApprovalCard extends StatelessWidget {
+  const _ApprovalCard({required this.approval});
 
-  final ManagerNotificationItem notification;
+  final ManagerApprovalItem approval;
 
   @override
   Widget build(BuildContext context) {
     return InfoCard(
-      onTap: () => _open(context, notification),
+      onTap: () => _open(context, approval),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -126,7 +120,7 @@ class _ApprovalNotificationCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  notification.title,
+                  approval.title ?? approval.referenceId,
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 14,
@@ -134,12 +128,16 @@ class _ApprovalNotificationCard extends StatelessWidget {
                   ),
                 ),
               ),
-              StatusChip(label: notification.type.isEmpty ? 'Approval' : notification.type),
+              StatusChip(
+                label: approval.status?.isNotEmpty == true
+                    ? approval.status!
+                    : approval.approvalType,
+              ),
             ],
           ),
           const SizedBox(height: 8),
           Text(
-            notification.content.isEmpty ? '--' : notification.content,
+            approval.subtitle?.isNotEmpty == true ? approval.subtitle! : '--',
             style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 12,
@@ -150,7 +148,7 @@ class _ApprovalNotificationCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                notification.refType ?? '--',
+                approval.approvalType,
                 style: const TextStyle(
                   color: AppColors.primary,
                   fontSize: 11,
@@ -159,7 +157,7 @@ class _ApprovalNotificationCard extends StatelessWidget {
               ),
               const Spacer(),
               Text(
-                notification.refId ?? '--',
+                approval.orderId ?? approval.referenceId,
                 style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 11,
@@ -172,35 +170,30 @@ class _ApprovalNotificationCard extends StatelessWidget {
     );
   }
 
-  void _open(BuildContext context, ManagerNotificationItem item) {
-    final refType = (item.refType ?? item.type).toLowerCase();
-    final refId = item.refId;
-    if (refId == null || refId.isEmpty) {
-      return;
-    }
-
-    if (refType.contains('survey')) {
+  void _open(BuildContext context, ManagerApprovalItem item) {
+    if (item.approvalType == 'survey_report') {
+      final taskId = item.taskId;
+      if (taskId == null || taskId.isEmpty) {
+        return;
+      }
       Navigator.pushNamed(
         context,
         AppRoutes.managerSurveyReview,
-        arguments: ManagerSurveyRouteArgs(taskId: refId),
+        arguments: ManagerSurveyRouteArgs(
+          taskId: taskId,
+          orderId: item.orderId,
+        ),
       );
       return;
     }
 
-    if (refType.contains('change')) {
+    if (item.approvalType == 'change_request') {
       Navigator.pushNamed(
         context,
         AppRoutes.managerChangeRequestApproval,
-        arguments: ManagerChangeRequestRouteArgs(changeRequestId: refId),
-      );
-      return;
-    }
-
-    if (refType.contains('payment')) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Mo don hang lien quan de xem giao dich.'),
+        arguments: ManagerChangeRequestRouteArgs(
+          changeRequestId: item.referenceId,
+          orderId: item.orderId,
         ),
       );
     }

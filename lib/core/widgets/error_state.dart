@@ -11,7 +11,8 @@ class ErrorState extends StatelessWidget {
   const ErrorState({
     super.key,
     this.title = 'Đã xảy ra lỗi',
-    this.message = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
+    this.message =
+        'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.',
     this.onRetry,
   });
 

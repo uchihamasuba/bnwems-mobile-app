@@ -40,7 +40,8 @@ class _TechnicalAppShellState extends State<TechnicalAppShell> {
         backgroundColor: Colors.white,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textSecondary,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+        selectedLabelStyle:
+            const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
         unselectedLabelStyle: const TextStyle(fontSize: 11),
         items: const [
           BottomNavigationBarItem(
@@ -55,12 +56,14 @@ class _TechnicalAppShellState extends State<TechnicalAppShell> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.playlist_add_check_outlined),
-            activeIcon: Icon(Icons.playlist_add_check_rounded, color: AppColors.primary),
+            activeIcon: Icon(Icons.playlist_add_check_rounded,
+                color: AppColors.primary),
             label: 'Checklist',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.upload_file_outlined),
-            activeIcon: Icon(Icons.upload_file_rounded, color: AppColors.primary),
+            activeIcon:
+                Icon(Icons.upload_file_rounded, color: AppColors.primary),
             label: 'Minh chứng',
           ),
         ],

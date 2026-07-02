@@ -33,7 +33,9 @@ class InfoCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: color ?? AppColors.cardBackground,
         borderRadius: BorderRadius.circular(radius ?? AppSizes.radiusLarge),
-        border: hasBorder ? Border.all(color: borderColor ?? AppColors.divider, width: 1) : null,
+        border: hasBorder
+            ? Border.all(color: borderColor ?? AppColors.divider, width: 1)
+            : null,
         boxShadow: AppColors.softShadow,
       ),
       child: onTap != null
@@ -41,7 +43,8 @@ class InfoCard extends StatelessWidget {
               color: Colors.transparent,
               child: InkWell(
                 onTap: onTap,
-                borderRadius: BorderRadius.circular(radius ?? AppSizes.radiusLarge),
+                borderRadius:
+                    BorderRadius.circular(radius ?? AppSizes.radiusLarge),
                 child: cardContent,
               ),
             )

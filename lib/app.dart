@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
 import 'core/routes/app_routes.dart';
 import 'core/constants/app_strings.dart';
+import 'services/auth_service.dart';
 
 // Auth
 import 'features/auth/screens/login_screen.dart';
@@ -51,44 +52,64 @@ class BnwemsApp extends StatelessWidget {
       title: AppStrings.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      initialRoute: AppRoutes.login,
+      initialRoute: AppRoutes.startup,
       routes: {
         // Auth
+        AppRoutes.startup: (context) => const _AppStartGate(),
         AppRoutes.login: (context) => const LoginScreen(),
 
         // Manager
         AppRoutes.managerDashboard: (context) => const ManagerAppShell(),
         AppRoutes.managerToday: (context) => const ManagerTodayScreen(),
-        AppRoutes.managerNotifications: (context) => const NotificationsScreen(),
+        AppRoutes.managerNotifications: (context) =>
+            const NotificationsScreen(),
         AppRoutes.managerOrderDetail: (context) => const OrderDetailScreen(),
-        AppRoutes.managerFieldProgress: (context) => const FieldProgressScreen(),
+        AppRoutes.managerFieldProgress: (context) =>
+            const FieldProgressScreen(),
         AppRoutes.managerSurveyReview: (context) => const SurveyReviewScreen(),
-        AppRoutes.managerChangeRequestApproval: (context) => const ChangeRequestApprovalScreen(),
-        AppRoutes.managerPaymentConfirmation: (context) => const PaymentConfirmationScreen(),
-        AppRoutes.managerEvidenceGallery: (context) => const EvidenceGalleryScreen(),
+        AppRoutes.managerChangeRequestApproval: (context) =>
+            const ChangeRequestApprovalScreen(),
+        AppRoutes.managerPaymentConfirmation: (context) =>
+            const PaymentConfirmationScreen(),
+        AppRoutes.managerEvidenceGallery: (context) =>
+            const EvidenceGalleryScreen(),
 
         // Leader Staff
         AppRoutes.leaderDashboard: (context) => const LeaderAppShell(),
         AppRoutes.leaderTasks: (context) => const LeaderTaskListScreen(),
         AppRoutes.leaderTaskDetail: (context) => const LeaderTaskDetailScreen(),
-        AppRoutes.leaderSurveyReport: (context) => const LeaderSurveyReportScreen(),
-        AppRoutes.leaderProgressUpdate: (context) => const LeaderProgressUpdateScreen(),
-        AppRoutes.leaderCreateChangeRequest: (context) => const LeaderCreateChangeRequestScreen(),
-        AppRoutes.leaderHandoverReport: (context) => const LeaderHandoverReportScreen(),
-        AppRoutes.leaderDamageLossReport: (context) => const LeaderDamageLossReportScreen(),
-        AppRoutes.leaderPaymentEvidenceUpload: (context) => const LeaderPaymentEvidenceUploadScreen(),
-        AppRoutes.leaderWarehouseReturnReport: (context) => const LeaderWarehouseReturnReportScreen(),
+        AppRoutes.leaderSurveyReport: (context) =>
+            const LeaderSurveyReportScreen(),
+        AppRoutes.leaderProgressUpdate: (context) =>
+            const LeaderProgressUpdateScreen(),
+        AppRoutes.leaderCreateChangeRequest: (context) =>
+            const LeaderCreateChangeRequestScreen(),
+        AppRoutes.leaderHandoverReport: (context) =>
+            const LeaderHandoverReportScreen(),
+        AppRoutes.leaderDamageLossReport: (context) =>
+            const LeaderDamageLossReportScreen(),
+        AppRoutes.leaderPaymentEvidenceUpload: (context) =>
+            const LeaderPaymentEvidenceUploadScreen(),
+        AppRoutes.leaderWarehouseReturnReport: (context) =>
+            const LeaderWarehouseReturnReportScreen(),
 
         // Technical Staff
         AppRoutes.technicalDashboard: (context) => const TechnicalAppShell(),
         AppRoutes.technicalTasks: (context) => const TechnicalTaskListScreen(),
-        AppRoutes.technicalTaskDetail: (context) => const TechnicalTaskDetailScreen(),
-        AppRoutes.technicalPickList: (context) => const TechnicalPickListScreen(),
-        AppRoutes.technicalTransportation: (context) => const TechnicalTransportationScreen(),
-        AppRoutes.technicalInstallationChecklist: (context) => const TechnicalInstallationChecklistScreen(),
-        AppRoutes.technicalCollectionChecklist: (context) => const TechnicalCollectionChecklistScreen(),
-        AppRoutes.technicalWarehouseReturn: (context) => const TechnicalWarehouseReturnScreen(),
-        AppRoutes.technicalEvidenceUpload: (context) => const TechnicalEvidenceUploadScreen(),
+        AppRoutes.technicalTaskDetail: (context) =>
+            const TechnicalTaskDetailScreen(),
+        AppRoutes.technicalPickList: (context) =>
+            const TechnicalPickListScreen(),
+        AppRoutes.technicalTransportation: (context) =>
+            const TechnicalTransportationScreen(),
+        AppRoutes.technicalInstallationChecklist: (context) =>
+            const TechnicalInstallationChecklistScreen(),
+        AppRoutes.technicalCollectionChecklist: (context) =>
+            const TechnicalCollectionChecklistScreen(),
+        AppRoutes.technicalWarehouseReturn: (context) =>
+            const TechnicalWarehouseReturnScreen(),
+        AppRoutes.technicalEvidenceUpload: (context) =>
+            const TechnicalEvidenceUploadScreen(),
 
         // Common
         AppRoutes.notifications: (context) => const NotificationsScreen(),
@@ -96,6 +117,47 @@ class BnwemsApp extends StatelessWidget {
         AppRoutes.orderDetail: (context) => const OrderDetailScreen(),
         AppRoutes.fieldProgress: (context) => const FieldProgressScreen(),
       },
+    );
+  }
+}
+
+class _AppStartGate extends StatefulWidget {
+  const _AppStartGate();
+
+  @override
+  State<_AppStartGate> createState() => _AppStartGateState();
+}
+
+class _AppStartGateState extends State<_AppStartGate> {
+  static const Color _background = Color(0xFFFBF8F3);
+  static const Color _accent = Color(0xFF894D58);
+  bool _navigated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _redirectToInitialRoute();
+  }
+
+  Future<void> _redirectToInitialRoute() async {
+    if (!mounted || _navigated) return;
+
+    await AuthService.logout();
+    if (!mounted || _navigated) return;
+
+    _navigated = true;
+    Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      backgroundColor: _background,
+      body: Center(
+        child: CircularProgressIndicator(
+          color: _accent,
+        ),
+      ),
     );
   }
 }

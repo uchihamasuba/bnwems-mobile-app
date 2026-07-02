@@ -27,15 +27,17 @@ class _LeaderTaskDetailScreenState extends State<LeaderTaskDetailScreen> {
     if (!_initialized) {
       final args = ModalRoute.of(context)?.settings.arguments as String?;
       final taskId = args ?? 'TSK-LDR-001';
-      _task = MockData.tasks.firstWhere((t) => t.id == taskId, orElse: () => MockData.tasks.first);
+      _task = MockData.tasks.firstWhere((t) => t.id == taskId,
+          orElse: () => MockData.tasks.first);
       _initialized = true;
     }
   }
 
   void _toggleChecklistItem(int index) {
     setState(() {
-      _task.checklistItems[index].isCompleted = !_task.checklistItems[index].isCompleted;
-      
+      _task.checklistItems[index].isCompleted =
+          !_task.checklistItems[index].isCompleted;
+
       // Calculate overall progress and check if done
       final allDone = _task.checklistItems.every((item) => item.isCompleted);
       if (allDone) {
@@ -57,7 +59,9 @@ class _LeaderTaskDetailScreenState extends State<LeaderTaskDetailScreen> {
   Widget build(BuildContext context) {
     // Find technical crew assigned to this order
     final techStaffList = MockData.tasks
-        .where((t) => t.orderCode == _task.orderCode && t.assignedRole == UserRole.technical)
+        .where((t) =>
+            t.orderCode == _task.orderCode &&
+            t.assignedRole == UserRole.technical)
         .map((t) => t.assignedTo)
         .toSet()
         .toList();
@@ -80,13 +84,21 @@ class _LeaderTaskDetailScreenState extends State<LeaderTaskDetailScreen> {
                   AppSizes.spacingL,
 
                   // Assigned tech crew
-                  const Text('Kỹ thuật viên cùng tham gia:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary)),
+                  const Text('Kỹ thuật viên cùng tham gia:',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: AppColors.textPrimary)),
                   AppSizes.spacingM,
                   _buildTechStaffCard(techStaffList),
                   AppSizes.spacingL,
 
                   // Checklist section
-                  const Text('Checklist giám sát & vận hành:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary)),
+                  const Text('Checklist giám sát & vận hành:',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: AppColors.textPrimary)),
                   AppSizes.spacingM,
                   _buildChecklistCard(),
                   const SizedBox(height: AppSizes.xxl),
@@ -110,7 +122,10 @@ class _LeaderTaskDetailScreenState extends State<LeaderTaskDetailScreen> {
             children: [
               Text(
                 'MÃ ĐƠN: ${_task.orderCode}',
-                style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 13),
+                style: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13),
               ),
               StatusChip(label: _task.status),
             ],
@@ -118,17 +133,22 @@ class _LeaderTaskDetailScreenState extends State<LeaderTaskDetailScreen> {
           const SizedBox(height: AppSizes.s),
           Text(
             _task.taskName,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary),
+            style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: AppColors.textPrimary),
           ),
           const Divider(height: 24, color: AppColors.divider),
           Row(
             children: [
-              const Icon(Icons.location_on_outlined, size: 16, color: AppColors.textSecondary),
+              const Icon(Icons.location_on_outlined,
+                  size: 16, color: AppColors.textSecondary),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   _task.location,
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                  style: const TextStyle(
+                      color: AppColors.textSecondary, fontSize: 13),
                 ),
               ),
             ],
@@ -136,11 +156,13 @@ class _LeaderTaskDetailScreenState extends State<LeaderTaskDetailScreen> {
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textSecondary),
+              const Icon(Icons.calendar_today_outlined,
+                  size: 14, color: AppColors.textSecondary),
               const SizedBox(width: 8),
               Text(
                 'Thời gian: ${_task.scheduledTime.hour}:${_task.scheduledTime.minute.toString().padLeft(2, '0')} - ${_task.scheduledTime.day}/${_task.scheduledTime.month}/${_task.scheduledTime.year}',
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                style: const TextStyle(
+                    color: AppColors.textSecondary, fontSize: 13),
               ),
             ],
           ),
@@ -154,7 +176,8 @@ class _LeaderTaskDetailScreenState extends State<LeaderTaskDetailScreen> {
       return const InfoCard(
         child: Padding(
           padding: EdgeInsets.all(12.0),
-          child: Text('Chưa có thợ kỹ thuật phụ trách trực tiếp.', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+          child: Text('Chưa có thợ kỹ thuật phụ trách trực tiếp.',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
         ),
       );
     }
@@ -165,17 +188,23 @@ class _LeaderTaskDetailScreenState extends State<LeaderTaskDetailScreen> {
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: list.length,
-        separatorBuilder: (_, __) => const Divider(height: 1, color: AppColors.divider),
+        separatorBuilder: (_, __) =>
+            const Divider(height: 1, color: AppColors.divider),
         itemBuilder: (context, index) {
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSizes.m, vertical: 12),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.m, vertical: 12),
             child: Row(
               children: [
-                const Icon(Icons.account_box_outlined, color: AppColors.primary, size: 22),
+                const Icon(Icons.account_box_outlined,
+                    color: AppColors.primary, size: 22),
                 const SizedBox(width: 12),
                 Text(
                   list[index],
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary),
                 ),
                 const Spacer(),
                 const StatusChip(label: 'Vận hành'),
@@ -205,13 +234,17 @@ class _LeaderTaskDetailScreenState extends State<LeaderTaskDetailScreen> {
                   item.label,
                   style: TextStyle(
                     fontSize: 13,
-                    color: item.isCompleted ? AppColors.textLight : AppColors.textPrimary,
-                    decoration: item.isCompleted ? TextDecoration.lineThrough : null,
+                    color: item.isCompleted
+                        ? AppColors.textLight
+                        : AppColors.textPrimary,
+                    decoration:
+                        item.isCompleted ? TextDecoration.lineThrough : null,
                   ),
                 ),
                 activeColor: AppColors.primary,
                 controlAffinity: ListTileControlAffinity.leading,
-                contentPadding: const EdgeInsets.symmetric(horizontal: AppSizes.m),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: AppSizes.m),
               );
             },
           ),
@@ -226,7 +259,10 @@ class _LeaderTaskDetailScreenState extends State<LeaderTaskDetailScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, -4)),
+          BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 10,
+              offset: const Offset(0, -4)),
         ],
       ),
       child: Row(

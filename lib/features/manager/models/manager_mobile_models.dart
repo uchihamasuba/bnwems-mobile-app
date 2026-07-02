@@ -114,7 +114,8 @@ class ManagerOrderSummary {
       status: (json['status'] ?? '').toString(),
       customerId: _toNullableString(json['customerId']),
       eventStartDate: _toDateTime(json['eventStartDate'] ?? json['eventDate']),
-      venueAddress: _toNullableString(json['venueAddress'] ?? json['eventLocation']),
+      venueAddress:
+          _toNullableString(json['venueAddress'] ?? json['eventLocation']),
       currentTask: _toNullableString(json['currentTask']),
       lastUpdate: _toDateTime(json['lastUpdate']),
     );
@@ -171,7 +172,8 @@ class ManagerOrderDetail {
       status: (json['status'] ?? '').toString(),
       customerId: _toNullableString(json['customerId']),
       eventStartDate: _toDateTime(json['eventStartDate'] ?? json['eventDate']),
-      venueAddress: _toNullableString(json['venueAddress'] ?? json['eventLocation']),
+      venueAddress:
+          _toNullableString(json['venueAddress'] ?? json['eventLocation']),
       customer: customerJson is Map<String, dynamic>
           ? ManagerCustomerSummary.fromJson(customerJson)
           : null,
@@ -205,8 +207,9 @@ class ManagerTaskSummary {
     return ManagerTaskSummary(
       workTaskId: _toNullableString(json['workTaskId'] ?? json['id']) ?? '',
       orderId: _toNullableString(json['orderId']) ?? '',
-      taskType: (json['taskType'] ?? json['taskCategory'] ?? json['title'] ?? '')
-          .toString(),
+      taskType:
+          (json['taskType'] ?? json['taskCategory'] ?? json['title'] ?? '')
+              .toString(),
       status: (json['status'] ?? '').toString(),
       scheduledStart: _toDateTime(
         json['scheduledStart'] ?? decodedDescription['scheduledStart'],
@@ -214,7 +217,8 @@ class ManagerTaskSummary {
       scheduledEnd: _toDateTime(
         json['scheduledEnd'] ?? decodedDescription['scheduledEnd'],
       ),
-      location: _toNullableString(json['location'] ?? decodedDescription['location']),
+      location:
+          _toNullableString(json['location'] ?? decodedDescription['location']),
     );
   }
 }
@@ -235,12 +239,13 @@ class ManagerSurveyReport {
   factory ManagerSurveyReport.fromJson(Map<String, dynamic> json) {
     final evidenceJson = json['evidences'] as List<dynamic>? ?? const [];
     return ManagerSurveyReport(
-      workTaskId:
-          _toNullableString(json['workTaskId'] ?? json['taskId'] ?? json['id']) ??
+      workTaskId: _toNullableString(
+              json['workTaskId'] ?? json['taskId'] ?? json['id']) ??
           '',
       notes: (json['notes'] ?? '').toString(),
       evidences: evidenceJson
-          .map((item) => ManagerEvidenceAsset.fromJson(item as Map<String, dynamic>))
+          .map((item) =>
+              ManagerEvidenceAsset.fromJson(item as Map<String, dynamic>))
           .toList(),
       submittedAt: _toDateTime(json['submittedAt']),
     );
@@ -250,6 +255,7 @@ class ManagerSurveyReport {
 class ManagerPaymentRecord {
   const ManagerPaymentRecord({
     required this.paymentId,
+    this.paymentRequestId,
     required this.amount,
     required this.paymentType,
     required this.paymentMethod,
@@ -259,6 +265,7 @@ class ManagerPaymentRecord {
   });
 
   final String paymentId;
+  final String? paymentRequestId;
   final double amount;
   final String paymentType;
   final String paymentMethod;
@@ -273,13 +280,17 @@ class ManagerPaymentRecord {
             json['paymentId'] ?? json['paymentRequestId'] ?? json['id'],
           ) ??
           '',
+      paymentRequestId: _toNullableString(json['paymentRequestId']),
       amount: _toDouble(json['amount']),
       paymentType: (json['paymentType'] ?? 'Payment').toString(),
-      paymentMethod: (json['paymentMethod'] ?? json['method'] ?? '').toString(),
+      paymentMethod:
+          (json['paymentMethod'] ?? json['methodHint'] ?? json['method'] ?? '')
+              .toString(),
       status: (json['status'] ?? '').toString(),
       paymentDate: _toDateTime(json['paymentDate'] ?? json['paidAt']),
       evidences: evidenceJson
-          .map((item) => ManagerEvidenceAsset.fromJson(item as Map<String, dynamic>))
+          .map((item) =>
+              ManagerEvidenceAsset.fromJson(item as Map<String, dynamic>))
           .toList(),
     );
   }
@@ -346,6 +357,28 @@ class ManagerEvidenceBundle {
   final List<ManagerEvidenceAsset> surveyEvidences;
   final List<ManagerEvidenceAsset> paymentEvidences;
   final List<String> operationNotes;
+}
+
+class ManagerApprovalItem {
+  const ManagerApprovalItem({
+    required this.approvalType,
+    required this.referenceId,
+    this.orderId,
+    this.taskId,
+    this.title,
+    this.subtitle,
+    this.status,
+    this.createdAt,
+  });
+
+  final String approvalType;
+  final String referenceId;
+  final String? orderId;
+  final String? taskId;
+  final String? title;
+  final String? subtitle;
+  final String? status;
+  final DateTime? createdAt;
 }
 
 String? _toNullableString(dynamic value) {
