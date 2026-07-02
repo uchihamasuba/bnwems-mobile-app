@@ -76,7 +76,7 @@ class _ManagerApprovalsScreenState extends State<ManagerApprovalsScreen> {
                 const ManagerSectionHeader(
                   title: 'Muc can xu ly',
                   subtitle:
-                      'Survey report va change request duoc lay tu approval queue cua BE.',
+                      'Survey report va change request duoc lay tu approval queue cua BE. Payment hien dang mo theo order detail hoac notification.',
                 ),
                 const SizedBox(height: AppSizes.m),
                 if (items.isEmpty)
@@ -193,6 +193,18 @@ class _ApprovalCard extends StatelessWidget {
         AppRoutes.managerChangeRequestApproval,
         arguments: ManagerChangeRequestRouteArgs(
           changeRequestId: item.referenceId,
+          orderId: item.orderId,
+        ),
+      );
+      return;
+    }
+
+    if (item.approvalType == 'payment_request') {
+      Navigator.pushNamed(
+        context,
+        AppRoutes.managerPaymentConfirmation,
+        arguments: ManagerPaymentRouteArgs(
+          paymentRequestId: item.referenceId,
           orderId: item.orderId,
         ),
       );

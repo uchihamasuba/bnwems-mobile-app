@@ -8,6 +8,8 @@ import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/info_card.dart';
 import '../../../core/widgets/loading_state.dart';
+import '../../../core/widgets/primary_button.dart';
+import '../../../core/widgets/secondary_button.dart';
 import '../../../core/widgets/section_title.dart';
 import '../../manager/models/manager_mobile_models.dart';
 import '../../manager/models/manager_route_args.dart';
@@ -22,6 +24,7 @@ class SurveyReviewScreen extends StatefulWidget {
 
 class _SurveyReviewScreenState extends State<SurveyReviewScreen> {
   late Future<_SurveyReviewData> _future;
+  bool _submitting = false;
 
   @override
   void didChangeDependencies() {
@@ -120,6 +123,32 @@ class _SurveyReviewScreenState extends State<SurveyReviewScreen> {
                 const SectionTitle(title: 'Minh chứng từ survey report'),
                 AppSizes.spacingM,
                 _buildPhotosGrid(report),
+                AppSizes.spacingL,
+                Row(
+                  children: [
+                    Expanded(
+                      child: SecondaryButton(
+                        text: 'Từ chối',
+                        icon: Icons.close_rounded,
+                        isLoading: _submitting,
+                        onPressed: _submitting
+                            ? null
+                            : () => _submitReview(data, 'rejected'),
+                      ),
+                    ),
+                    const SizedBox(width: AppSizes.s),
+                    Expanded(
+                      child: PrimaryButton(
+                        text: 'Phê duyệt',
+                        icon: Icons.check_rounded,
+                        isLoading: _submitting,
+                        onPressed: _submitting
+                            ? null
+                            : () => _submitReview(data, 'approved'),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -202,8 +231,11 @@ class _SurveyReviewScreenState extends State<SurveyReviewScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.image_outlined,
-                      color: AppColors.primary, size: 28),
+                  const Icon(
+                    Icons.image_outlined,
+                    color: AppColors.primary,
+                    size: 28,
+                  ),
                   const SizedBox(height: 6),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -226,6 +258,42 @@ class _SurveyReviewScreenState extends State<SurveyReviewScreen> {
         );
       },
     );
+  }
+
+  Future<void> _submitReview(_SurveyReviewData data, String status) async {
+    setState(() => _submitting = true);
+    try {
+      await ManagerMobileService.reviewSurveyReport(
+        taskId: data.taskId,
+        status: status,
+      );
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            status == 'approved'
+                ? 'Đã phê duyệt báo cáo khảo sát.'
+                : 'Đã từ chối báo cáo khảo sát.',
+          ),
+        ),
+      );
+      setState(() {
+        _future = _loadData();
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _submitting = false);
+      }
+    }
   }
 }
 

@@ -95,7 +95,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     try {
       await ManagerMobileService.markNotificationRead(
-          notification.notificationId);
+        notification.notificationId,
+      );
       if (!mounted) {
         return;
       }
@@ -146,10 +147,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
 
     if (refType.contains('payment')) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Mở đơn hàng liên quan để xem giao dịch.'),
-        ),
+      Navigator.pushNamed(
+        context,
+        AppRoutes.managerPaymentConfirmation,
+        arguments: ManagerPaymentRouteArgs(paymentRequestId: refId),
       );
       return;
     }
@@ -160,7 +161,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         AppRoutes.managerOrderDetail,
         arguments: ManagerOrderRouteArgs(orderId: refId),
       );
-      return;
     }
   }
 
@@ -238,7 +238,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           const ManagerSectionHeader(
             title: 'Danh sách thông báo',
             subtitle:
-                'Nhấn vào để đánh dấu đã đọc và mở màn hình phù hợp nếu backend có refType/refId.',
+                'Nhấn vào để đánh dấu đã đọc và mở màn hình phù hợp nếu backend có targetRefType/targetRefId.',
           ),
           const SizedBox(height: AppSizes.m),
           if (list.isEmpty)

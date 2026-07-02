@@ -55,10 +55,19 @@ class _ManagerTodayScreenState extends State<ManagerTodayScreen> {
       ManagerMobileService.getFieldProgressFeed(),
     ]);
 
+    final orders = results[0] as List<ManagerOrderSummary>;
+    final orderIds = orders.map((order) => order.orderId).toSet();
+    final runningTasks = (results[1] as List<ManagerTaskSummary>)
+        .where((task) => orderIds.contains(task.orderId))
+        .toList();
+    final fieldProgress = (results[2] as List<ManagerOrderSummary>)
+        .where((item) => orderIds.contains(item.orderId))
+        .toList();
+
     return _TodayData(
-      orders: results[0] as List<ManagerOrderSummary>,
-      tasks: results[1] as List<ManagerTaskSummary>,
-      fieldProgress: results[2] as List<ManagerOrderSummary>,
+      orders: orders,
+      tasks: runningTasks,
+      fieldProgress: fieldProgress,
     );
   }
 

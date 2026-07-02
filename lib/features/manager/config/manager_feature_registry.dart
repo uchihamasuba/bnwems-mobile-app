@@ -46,6 +46,9 @@ class ManagerFeatureRegistry {
         'GET /notifications',
         'GET /orders/field-progress',
       ],
+      notes: [
+        'Dashboard khong phu thuoc vao payment approval queue.',
+      ],
     ),
     ManagerFeatureDefinition(
       featureKey: 'notifications',
@@ -135,6 +138,7 @@ class ManagerFeatureRegistry {
       ],
       notes: [
         'Payment confirmation is performed on payment requests.',
+        'GET /manager/approvals hien chua tra paymentRequests, nen payment duoc mo tu order detail hoac notification.',
       ],
     ),
     ManagerFeatureDefinition(

@@ -190,7 +190,8 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
                       color: AppColors.warning,
                       onTap: () => Navigator.pushNamed(
                         context,
-                        AppRoutes.managerChangeRequestApproval,
+                        AppRoutes.managerDashboard,
+                        arguments: 3,
                       ),
                     ),
                     ManagerQuickActionTile(
@@ -206,10 +207,15 @@ class _ManagerDashboardScreenState extends State<ManagerDashboardScreen> {
                       label: 'Xác nhận thanh toán',
                       icon: Icons.payments_outlined,
                       color: AppColors.success,
-                      onTap: () => Navigator.pushNamed(
-                        context,
-                        AppRoutes.managerPaymentConfirmation,
-                      ),
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Thanh toán chỉ có dữ liệu khi Leader hoặc Technical đã gửi payment evidence. Hãy mở từ chi tiết đơn hàng hoặc notification payment.',
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),

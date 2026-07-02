@@ -136,7 +136,7 @@ class ManagerMobileService {
       }
     }
 
-    return tasks.isEmpty ? null : tasks.first;
+    return null;
   }
 
   static Future<ManagerSurveyReport> getSurveyReport(String taskId) async {
@@ -144,6 +144,15 @@ class ManagerMobileService {
     return ManagerSurveyReport.fromJson(
       response['data'] as Map<String, dynamic>,
     );
+  }
+
+  static Future<void> reviewSurveyReport({
+    required String taskId,
+    required String status,
+  }) async {
+    await ApiService.put('/tasks/$taskId/survey-report/review', {
+      'status': status,
+    });
   }
 
   static Future<List<ManagerPaymentRecord>> getPaymentsByOrder(
@@ -225,6 +234,15 @@ class ManagerMobileService {
     });
   }
 
+  static Future<ManagerChangeRequestDetail> getChangeRequestDetail(
+    String changeRequestId,
+  ) async {
+    final response = await ApiService.get('/change-requests/$changeRequestId');
+    return ManagerChangeRequestDetail.fromJson(
+      response['data'] as Map<String, dynamic>,
+    );
+  }
+
   static Future<void> confirmSettlement(String settlementId) async {
     await ApiService.put('/settlements/$settlementId/confirm', {
       'status': 'confirmed',
@@ -245,9 +263,14 @@ class ManagerMobileService {
     required String orderId,
     String? surveyTaskId,
   }) async {
-    final surveyReport = surveyTaskId == null || surveyTaskId.isEmpty
-        ? null
-        : await getSurveyReport(surveyTaskId);
+    ManagerSurveyReport? surveyReport;
+    if (surveyTaskId != null && surveyTaskId.isNotEmpty) {
+      try {
+        surveyReport = await getSurveyReport(surveyTaskId);
+      } catch (_) {
+        surveyReport = null;
+      }
+    }
     final response = await ApiService.get('/orders/$orderId/evidences');
     final rawEvidences = response['data'] as List<dynamic>? ?? const [];
     final surveyEvidences = <ManagerEvidenceAsset>[];
@@ -321,6 +344,28 @@ class ManagerMobileService {
               (item['siteCondition'] ?? item['reviewNote'] ?? '').toString(),
           status: _toNullableString(item['status']),
           createdAt: _toDateTime(item['createdAt']),
+        ),
+      );
+    }
+
+    final paymentRequests =
+        data['paymentRequests'] as List<dynamic>? ?? const <dynamic>[];
+    for (final item in paymentRequests.whereType<Map<String, dynamic>>()) {
+      final paymentRequestId =
+          (item['paymentRequestId'] ?? item['id'] ?? '').toString();
+      if (paymentRequestId.isEmpty) {
+        continue;
+      }
+      approvals.add(
+        ManagerApprovalItem(
+          approvalType: 'payment_request',
+          referenceId: paymentRequestId,
+          orderId: _toNullableString(item['orderId']),
+          title: 'Payment request $paymentRequestId',
+          subtitle: (item['paymentType'] ?? 'payment').toString(),
+          status: _toNullableString(item['status']),
+          createdAt: _toDateTime(item['createdAt']),
+          amountLabel: item['amount']?.toString(),
         ),
       );
     }

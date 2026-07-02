@@ -8,7 +8,9 @@ import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/info_card.dart';
 import '../../../core/widgets/loading_state.dart';
+import '../../../core/widgets/primary_button.dart';
 import '../../../core/widgets/section_title.dart';
+import '../../../core/widgets/secondary_button.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../../manager/models/manager_mobile_models.dart';
 import '../../manager/models/manager_route_args.dart';
@@ -24,6 +26,7 @@ class PaymentConfirmationScreen extends StatefulWidget {
 
 class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   late Future<_PaymentScreenData> _future;
+  String? _submittingPaymentRequestId;
 
   @override
   void didChangeDependencies() {
@@ -45,21 +48,32 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
       orderId = args;
     }
 
-    if (orderId == null || orderId.isEmpty) {
+    if (orderId != null && orderId.isNotEmpty) {
+      final payments = await ManagerMobileService.getPaymentsByOrder(orderId);
+      return _PaymentScreenData(
+        orderId: orderId,
+        paymentId: paymentId,
+        paymentRequestId: paymentRequestId,
+        payments: payments,
+      );
+    }
+
+    if (paymentRequestId != null && paymentRequestId.isNotEmpty) {
+      final payment =
+          await ManagerMobileService.getPaymentRequestDetail(paymentRequestId);
       return _PaymentScreenData(
         orderId: null,
         paymentId: paymentId,
         paymentRequestId: paymentRequestId,
-        payments: const [],
+        payments: [payment],
       );
     }
 
-    final payments = await ManagerMobileService.getPaymentsByOrder(orderId);
     return _PaymentScreenData(
-      orderId: orderId,
+      orderId: null,
       paymentId: paymentId,
       paymentRequestId: paymentRequestId,
-      payments: payments,
+      payments: const [],
     );
   }
 
@@ -103,25 +117,16 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
               children: [
                 _buildHeaderCard(data),
                 AppSizes.spacingL,
-                const SectionTitle(title: 'Danh sach giao dich'),
+                const SectionTitle(title: 'Danh sách giao dịch'),
                 AppSizes.spacingM,
-                if (data.orderId == null)
+                if (data.payments.isEmpty)
                   const SizedBox(
                     height: 240,
                     child: EmptyState(
                       title: 'Không có dữ liệu giao dịch',
                       description:
-                          'Hãy mở từ chi tiết đơn hàng để xem giao dịch.',
+                          'Hãy mở từ chi tiết đơn hàng hoặc notification payment để xem giao dịch.',
                       icon: Icons.payments_outlined,
-                    ),
-                  )
-                else if (data.payments.isEmpty)
-                  const SizedBox(
-                    height: 240,
-                    child: EmptyState(
-                      title: 'Chưa có giao dịch',
-                      description: 'Không có giao dịch nào cho đơn hàng này.',
-                      icon: Icons.receipt_long_outlined,
                     ),
                   )
                 else
@@ -130,12 +135,26 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                       padding: const EdgeInsets.only(bottom: AppSizes.m),
                       child: _PaymentCard(
                         payment: payment,
+                        isSubmitting:
+                            _submittingPaymentRequestId == payment.paymentRequestId,
                         highlighted:
                             (data.paymentRequestId != null &&
                                     data.paymentRequestId ==
                                         payment.paymentRequestId) ||
                                 (data.paymentId != null &&
                                     data.paymentId == payment.paymentId),
+                        onConfirmCompleted: payment.paymentRequestId == null
+                            ? null
+                            : () => _submitPaymentDecision(
+                                  payment.paymentRequestId!,
+                                  'completed',
+                                ),
+                        onConfirmFailed: payment.paymentRequestId == null
+                            ? null
+                            : () => _submitPaymentDecision(
+                                  payment.paymentRequestId!,
+                                  'failed',
+                                ),
                       ),
                     ),
                   ),
@@ -168,7 +187,9 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                 Text(
                   'Số giao dịch: ${data.payments.length}',
                   style: const TextStyle(
-                      fontSize: 12, color: AppColors.textSecondary),
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ],
             ),
@@ -184,16 +205,61 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
       ),
     );
   }
+
+  Future<void> _submitPaymentDecision(
+    String paymentRequestId,
+    String status,
+  ) async {
+    setState(() => _submittingPaymentRequestId = paymentRequestId);
+    try {
+      await ManagerMobileService.confirmPayment(
+        paymentRequestId: paymentRequestId,
+        status: status,
+      );
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            status == 'completed'
+                ? 'Đã xác nhận thanh toán.'
+                : 'Đã ghi nhận giao dịch thất bại.',
+          ),
+        ),
+      );
+      setState(() {
+        _future = _loadData();
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _submittingPaymentRequestId = null);
+      }
+    }
+  }
 }
 
 class _PaymentCard extends StatelessWidget {
   const _PaymentCard({
     required this.payment,
     required this.highlighted,
+    required this.isSubmitting,
+    this.onConfirmCompleted,
+    this.onConfirmFailed,
   });
 
   final ManagerPaymentRecord payment;
   final bool highlighted;
+  final bool isSubmitting;
+  final VoidCallback? onConfirmCompleted;
+  final VoidCallback? onConfirmFailed;
 
   @override
   Widget build(BuildContext context) {
@@ -218,16 +284,18 @@ class _PaymentCard extends StatelessWidget {
                 ),
               ),
               StatusChip(
-                  label: payment.status.isEmpty
-                      ? 'Chưa xác định'
-                      : payment.status),
+                label:
+                    payment.status.isEmpty ? 'Chưa xác định' : payment.status,
+              ),
             ],
           ),
           const SizedBox(height: 10),
           _DetailRow(label: 'Loại', value: payment.paymentType),
           const SizedBox(height: 8),
           _DetailRow(
-              label: 'Số tiền', value: payment.amount.toStringAsFixed(0)),
+            label: 'Số tiền',
+            value: payment.amount.toStringAsFixed(0),
+          ),
           const SizedBox(height: 8),
           _DetailRow(
             label: 'Phương thức',
@@ -240,6 +308,32 @@ class _PaymentCard extends StatelessWidget {
                 ? '--'
                 : '${payment.paymentDate!.day}/${payment.paymentDate!.month}/${payment.paymentDate!.year}',
           ),
+          if (payment.paymentRequestId != null &&
+              payment.paymentRequestId!.isNotEmpty &&
+              payment.status.toLowerCase() == 'pending') ...[
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: SecondaryButton(
+                    text: 'Thất bại',
+                    icon: Icons.close_rounded,
+                    isLoading: isSubmitting,
+                    onPressed: isSubmitting ? null : onConfirmFailed,
+                  ),
+                ),
+                const SizedBox(width: AppSizes.s),
+                Expanded(
+                  child: PrimaryButton(
+                    text: 'Xác nhận',
+                    icon: Icons.check_rounded,
+                    isLoading: isSubmitting,
+                    onPressed: isSubmitting ? null : onConfirmCompleted,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

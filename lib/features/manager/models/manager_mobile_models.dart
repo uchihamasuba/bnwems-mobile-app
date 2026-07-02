@@ -78,8 +78,8 @@ class ManagerNotificationItem {
       type: (json['type'] ?? '').toString(),
       isRead: json['isRead'] == true,
       createdAt: _toDateTime(json['createdAt']),
-      refType: _toNullableString(json['refType']),
-      refId: _toNullableString(json['refId']),
+      refType: _toNullableString(json['refType'] ?? json['targetRefType']),
+      refId: _toNullableString(json['refId'] ?? json['targetRefId']),
     );
   }
 }
@@ -296,6 +296,80 @@ class ManagerPaymentRecord {
   }
 }
 
+class ManagerChangeRequestDetail {
+  const ManagerChangeRequestDetail({
+    required this.changeRequestId,
+    required this.orderId,
+    required this.type,
+    required this.status,
+    required this.items,
+    this.reason,
+    this.noteFromLeader,
+    this.estimatedCost,
+  });
+
+  final String changeRequestId;
+  final String orderId;
+  final String type;
+  final String status;
+  final String? reason;
+  final String? noteFromLeader;
+  final double? estimatedCost;
+  final List<ManagerChangeRequestItem> items;
+
+  factory ManagerChangeRequestDetail.fromJson(Map<String, dynamic> json) {
+    final itemsJson = json['items'] as List<dynamic>? ?? const [];
+    return ManagerChangeRequestDetail(
+      changeRequestId:
+          _toNullableString(json['changeRequestId'] ?? json['id']) ?? '',
+      orderId: _toNullableString(json['orderId']) ?? '',
+      type: (json['type'] ?? '').toString(),
+      status: (json['status'] ?? '').toString(),
+      reason: _toNullableString(json['reason']),
+      noteFromLeader: _toNullableString(json['noteFromLeader']),
+      estimatedCost: json['estimatedCost'] == null
+          ? null
+          : _toDouble(json['estimatedCost']),
+      items: itemsJson
+          .map((item) =>
+              ManagerChangeRequestItem.fromJson(item as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
+class ManagerChangeRequestItem {
+  const ManagerChangeRequestItem({
+    required this.id,
+    required this.equipmentItemId,
+    required this.quantity,
+    required this.action,
+    this.note,
+    this.equipmentItemName,
+    this.equipmentItemCode,
+  });
+
+  final String id;
+  final String equipmentItemId;
+  final int quantity;
+  final String action;
+  final String? note;
+  final String? equipmentItemName;
+  final String? equipmentItemCode;
+
+  factory ManagerChangeRequestItem.fromJson(Map<String, dynamic> json) {
+    return ManagerChangeRequestItem(
+      id: _toNullableString(json['id']) ?? '',
+      equipmentItemId: _toNullableString(json['equipmentItemId']) ?? '',
+      quantity: _toInt(json['quantity']),
+      action: (json['action'] ?? '').toString(),
+      note: _toNullableString(json['note']),
+      equipmentItemName: _toNullableString(json['equipmentItemName']),
+      equipmentItemCode: _toNullableString(json['equipmentItemCode']),
+    );
+  }
+}
+
 class ManagerVerificationSummary {
   const ManagerVerificationSummary({
     required this.orderId,
@@ -369,6 +443,7 @@ class ManagerApprovalItem {
     this.subtitle,
     this.status,
     this.createdAt,
+    this.amountLabel,
   });
 
   final String approvalType;
@@ -379,6 +454,7 @@ class ManagerApprovalItem {
   final String? subtitle;
   final String? status;
   final DateTime? createdAt;
+  final String? amountLabel;
 }
 
 String? _toNullableString(dynamic value) {

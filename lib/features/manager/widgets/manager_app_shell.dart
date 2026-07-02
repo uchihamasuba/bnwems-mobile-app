@@ -16,6 +16,7 @@ class ManagerAppShell extends StatefulWidget {
 
 class _ManagerAppShellState extends State<ManagerAppShell> {
   int _currentIndex = 0;
+  bool _resolvedInitialIndex = false;
 
   final List<Widget> _pages = const [
     ManagerDashboardScreen(),
@@ -24,6 +25,20 @@ class _ManagerAppShellState extends State<ManagerAppShell> {
     ManagerApprovalsScreen(),
     ManagerAccountScreen(),
   ];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_resolvedInitialIndex) {
+      return;
+    }
+
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is int && args >= 0 && args < _pages.length) {
+      _currentIndex = args;
+    }
+    _resolvedInitialIndex = true;
+  }
 
   @override
   Widget build(BuildContext context) {
