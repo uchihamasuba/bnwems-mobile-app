@@ -5,7 +5,6 @@ import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/custom_app_bar.dart';
 import '../../../core/widgets/info_card.dart';
 import '../../../core/widgets/status_chip.dart';
-import '../../../core/widgets/primary_button.dart';
 import '../../../shared/mock/mock_data.dart';
 import '../../../shared/models/core_models.dart';
 
