@@ -97,6 +97,18 @@ class ApiService {
     return _handleResponse(response);
   }
 
+  static Future<dynamic> delete(String path) async {
+    final response = await _sendWithFallback(
+      (baseUrl, headers) => _client
+          .delete(
+            Uri.parse('$baseUrl$path'),
+            headers: headers,
+          )
+          .timeout(const Duration(seconds: 15)),
+    );
+    return _handleResponse(response);
+  }
+
   static Future<http.Response> _sendWithFallback(
     Future<http.Response> Function(String baseUrl, Map<String, String> headers)
         send,
