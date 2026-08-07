@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../utils/storage_helper.dart';
@@ -118,7 +119,8 @@ class ApiService {
     for (final baseUrl in _baseUrls) {
       try {
         return await send(baseUrl, headers);
-      } catch (error) {
+      } catch (error, stackTrace) {
+        developer.log('Network request failed for $baseUrl', error: error, stackTrace: stackTrace);
         continue;
       }
     }
