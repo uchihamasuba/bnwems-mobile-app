@@ -61,8 +61,8 @@ class _ManagerAccountScreenState extends State<ManagerAccountScreen> {
           return AppScaffold(
             useSafeArea: true,
             body: ErrorState(
-              title: 'Khong tim thay phien dang nhap',
-              message: 'Hay dang nhap lai de tai thong tin quan ly.',
+              title: 'Không tìm thấy phiên đăng nhập',
+              message: 'Hãy đăng nhập lại để tải thông tin quản lý.',
               onRetry: _reload,
             ),
           );
@@ -74,9 +74,9 @@ class _ManagerAccountScreenState extends State<ManagerAccountScreen> {
             padding: const EdgeInsets.all(AppSizes.m),
             children: [
               ManagerAppHeader(
-                title: 'Tai khoan',
+                title: 'Tài khoản',
                 subtitle:
-                    'Quan ly phien dang nhap va truy cap nhanh toi cac tac vu thuong dung.',
+                    'Quản lý phiên đăng nhập và truy cập nhanh tới các tác vụ thường dùng.',
                 trailing: CircleAvatar(
                   radius: 24,
                   backgroundColor: Colors.white.withValues(alpha: 0.16),
@@ -92,8 +92,8 @@ class _ManagerAccountScreenState extends State<ManagerAccountScreen> {
               ),
               const SizedBox(height: AppSizes.l),
               const ManagerSectionHeader(
-                title: 'Thong tin quan ly',
-                subtitle: 'Thong tin hien thi phuc vu trai nghiem giao dien mobile.',
+                title: 'Thông tin quản lý',
+                subtitle: 'Thông tin hiển thị phục vụ trải nghiệm giao diện mobile.',
               ),
               const SizedBox(height: AppSizes.m),
               InfoCard(
@@ -101,25 +101,25 @@ class _ManagerAccountScreenState extends State<ManagerAccountScreen> {
                   children: [
                     _InfoTile(
                       icon: Icons.person_outline_rounded,
-                      label: 'Ho va ten',
+                      label: 'Họ và tên',
                       value: user.fullName,
                     ),
                     const Divider(height: 24, color: AppColors.divider),
                     _InfoTile(
                       icon: Icons.badge_outlined,
-                      label: 'Ten dang nhap',
+                      label: 'Tên đăng nhập',
                       value: user.username,
                     ),
                     const Divider(height: 24, color: AppColors.divider),
                     _InfoTile(
                       icon: Icons.shield_outlined,
-                      label: 'Vai tro',
+                      label: 'Vai trò',
                       value: user.displayRole,
                     ),
                     const Divider(height: 24, color: AppColors.divider),
                     _InfoTile(
                       icon: Icons.verified_user_outlined,
-                      label: 'Trang thai',
+                      label: 'Trạng thái',
                       value: user.displayStatus,
                     ),
                   ],
@@ -127,24 +127,24 @@ class _ManagerAccountScreenState extends State<ManagerAccountScreen> {
               ),
               const SizedBox(height: AppSizes.l),
               const ManagerSectionHeader(
-                title: 'Tac vu nhanh',
-                subtitle: 'Dieu huong mot cham toi cac khu vuc thuong dung.',
+                title: 'Tác vụ nhanh',
+                subtitle: 'Điều hướng một chạm tới các khu vực thường dùng.',
               ),
               const SizedBox(height: AppSizes.m),
               _ActionRow(
                 icon: Icons.today_rounded,
-                title: 'Don hang hom nay',
+                title: 'Đơn hàng hôm nay',
                 onTap: () => Navigator.pushNamed(context, AppRoutes.managerToday),
               ),
               _ActionRow(
                 icon: Icons.notifications_active_outlined,
-                title: 'Thong bao khan',
+                title: 'Thông báo khẩn',
                 onTap: () =>
                     Navigator.pushNamed(context, AppRoutes.managerNotifications),
               ),
               _ActionRow(
                 icon: Icons.timeline_rounded,
-                title: 'Tien do hien truong',
+                title: 'Tiến độ hiện trường',
                 onTap: () =>
                     Navigator.pushNamed(context, AppRoutes.managerFieldProgress),
               ),
@@ -172,7 +172,7 @@ class _ManagerAccountScreenState extends State<ManagerAccountScreen> {
                     );
                   },
                   icon: const Icon(Icons.logout_rounded),
-                  label: const Text('Dang xuat'),
+                  label: const Text('Đăng xuất'),
                 ),
               ),
             ],
