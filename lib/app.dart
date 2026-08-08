@@ -142,11 +142,26 @@ class _AppStartGateState extends State<_AppStartGate> {
   Future<void> _redirectToInitialRoute() async {
     if (!mounted || _navigated) return;
 
-    await AuthService.logout();
+    final user = await AuthService.getStoredUser();
+
     if (!mounted || _navigated) return;
 
     _navigated = true;
-    Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+    
+    if (user != null) {
+      if (user.isManager) {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.managerDashboard);
+      } else if (user.isLeader) {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.leaderDashboard);
+      } else if (user.isTechnical) {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.technicalDashboard);
+      } else {
+        await AuthService.logout();
+        Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+      }
+    } else {
+      Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+    }
   }
 
   @override
