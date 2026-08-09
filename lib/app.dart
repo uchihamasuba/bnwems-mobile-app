@@ -52,6 +52,7 @@ class BnwemsApp extends StatelessWidget {
       title: AppStrings.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      themeMode: ThemeMode.light,
       initialRoute: AppRoutes.startup,
       routes: {
         // Auth
