@@ -456,6 +456,7 @@ class _LoginScreenState extends State<LoginScreen>
     return _FieldCard(
       child: TextFormField(
         controller: _usernameController,
+        autofillHints: const [AutofillHints.username],
         textInputAction: TextInputAction.next,
         style: const TextStyle(
           fontSize: 15,
@@ -496,6 +497,7 @@ class _LoginScreenState extends State<LoginScreen>
       child: TextFormField(
         controller: _passwordController,
         obscureText: _obscurePassword,
+        autofillHints: const [AutofillHints.password],
         textInputAction: TextInputAction.done,
         onFieldSubmitted: (_) => _handleLogin(),
         style: const TextStyle(
