@@ -113,9 +113,9 @@ class TechnicalDashboardScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSizes.m),
       decoration: BoxDecoration(
-        color: AppColors.primaryLight.withOpacity(0.5),
+        color: AppColors.primaryLight.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
-        border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
@@ -173,7 +173,7 @@ class TechnicalDashboardScreen extends StatelessWidget {
   Widget _buildActionCard(BuildContext context, String title, IconData icon,
       Color color, String route) {
     return InfoCard(
-      borderColor: color.withOpacity(0.2),
+      borderColor: color.withValues(alpha: 0.2),
       onTap: () => Navigator.pushNamed(context, route),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -182,7 +182,7 @@ class TechnicalDashboardScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-                color: color.withOpacity(0.1), shape: BoxShape.circle),
+                color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
             child: Icon(icon, color: color, size: 18),
           ),
           Text(
