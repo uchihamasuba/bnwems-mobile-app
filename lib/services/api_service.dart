@@ -118,7 +118,11 @@ class ApiService {
 
     for (final baseUrl in _baseUrls) {
       try {
-        return await send(baseUrl, headers);
+        final start = DateTime.now();
+        final response = await send(baseUrl, headers);
+        final duration = DateTime.now().difference(start).inMilliseconds;
+        developer.log('API Request: ${response.request?.method} ${response.request?.url} - ${response.statusCode} - ${duration}ms');
+        return response;
       } catch (error, stackTrace) {
         developer.log('Network request failed for $baseUrl', error: error, stackTrace: stackTrace);
         continue;
